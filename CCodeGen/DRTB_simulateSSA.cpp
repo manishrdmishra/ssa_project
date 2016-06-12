@@ -5,7 +5,7 @@
 #include <omp.h> 
 #include <iostream>
 #include <glog/logging.h>
-//#define LOG(str) std::cout<<str
+
 
 
 // Input:   xCurr (current state vector)
@@ -20,12 +20,9 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-  // LOG("hello");
-   // Initialize Google's logging library.
-     google::InitGoogleLogging("hello");
+ 
 
-     // ...
-LOG(INFO)<<"Hello world";
+
     
     /* Declare Inputs*/
     double *xCurr;

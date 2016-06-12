@@ -138,7 +138,7 @@ tic,
     dr_compileModel(system,'testAtefeh',0);
     dr_X_SSA = zeros(length(t),4,Nssa);
  tic,   
-    for i = 1:1
+    for i = 1:Nssa
         % Drawing of steady state
         a  = find(cumsum(model.p0)>=rand,1,'first');
         x0 = system.index(a,:)';
