@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <omp.h> 
 #include <iostream>
-#include <glog/logging.h>
+
+#define LOGGING_LEVEL_1
+#include "logger.hpp"
 
 
 
@@ -21,9 +23,11 @@
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
  
+    /* Example for logging */
+    logger<file_log_policy> log_inst("execution.log");
+	log_inst.print<severity_type::debug>("hello");
+	LOG("Starting the application..");
 
-
-    
     /* Declare Inputs*/
     double *xCurr;
     double *parameters;
