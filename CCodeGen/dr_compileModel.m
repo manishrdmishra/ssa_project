@@ -29,7 +29,7 @@ function [] = dr_compileModel(System, ExecID, cleanup)
 %% Core Algorithm
     % Set cleanup if not specified
     if ~exist('cleanup','var'),
-        cleanup = 1;
+        cleanup = 0;
     end
     
     % Create temporary working directory

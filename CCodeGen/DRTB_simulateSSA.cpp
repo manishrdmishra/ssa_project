@@ -9,14 +9,9 @@
 #include <cstddef>
 #include <fstream>
 
-// This macro enables file logging
-//#define FLOGGING
-
-// This macro enables command line logging
-//#ifdef PROGRAM_DEBUG
-//#define CLOGGING
-//#include "logger.hpp"
-//#endif
+#ifdef LOGGING
+#include "logger.hpp"
+#endif
 
 // Input:   xCurr (current state vector)
 // Input:   tCurr (current time)
@@ -25,191 +20,6 @@
 // Output:  tCurr  (time after last reaction)
 // Output:  XCurr  (state at tCurr)
 // Output:  XSaved (state at last report time)
-
-#ifdef LOGGING
-
-#define NUM_VARS 8
-#define MAX_REACTIONS 1000
-#define MAX_STATES 1000
-#define MAX_HISTORY 1000
-enum VAR
-{
-	RAND_ONE = 0,
-	RAND_TWO,
-	T_CURR,
-	T_NEXT,
-	STATES,
-	PROPENSITIES,
-	CHOOSEN_PROPENSITY,
-	REACTION_INDICIES
-};
-
-enum LOGLEVEL
-{
-	ALL = 0, DEBUG, INFO, OFF
-};
-bool shouldBeLogged(LOGLEVEL level, int *log_level_vars, VAR var)
-{
-	if (log_level_vars[var] >= level)
-	{
-		return true;
-	}
-	return false;
-}
-void initializeLoggingFlags(LOGLEVEL level,int* log_level_of_vars,bool* logging_flag_of_var)
-{
-	if (shouldBeLogged(level, log_level_of_vars, RAND_ONE) == true)
-	{
-		logging_flag_of_var[RAND_ONE] = true;
-	}
-	if (shouldBeLogged(level, log_level_of_vars, RAND_TWO) == true)
-	{
-		logging_flag_of_var[RAND_TWO] = true;
-	}
-	if (shouldBeLogged(level, log_level_of_vars, T_CURR) == true)
-	{
-		logging_flag_of_var[T_CURR] = true;
-	}
-	if (shouldBeLogged(level, log_level_of_vars, T_NEXT) == true)
-	{
-		logging_flag_of_var[T_NEXT] = true;
-	}
-	if (shouldBeLogged(level, log_level_of_vars, STATES) == true)
-	{
-		logging_flag_of_var[STATES] = true;
-	}
-	if (shouldBeLogged(level, log_level_of_vars, PROPENSITIES) == true)
-	{
-		logging_flag_of_var[PROPENSITIES] = true;
-	}
-	if (shouldBeLogged(level, log_level_of_vars, CHOOSEN_PROPENSITY) == true)
-	{
-		logging_flag_of_var[CHOOSEN_PROPENSITY] = true;
-	}
-	if (shouldBeLogged(level, log_level_of_vars, REACTION_INDICIES) == true)
-	{
-		logging_flag_of_var[REACTION_INDICIES] = true;
-	}
-
-}
-
-void update_logRotation(int i, int maxHistory, LOGLEVEL level, int num_states,
-		int num_reactions, bool* logging_flag_of_var, double *log_rand_one,
-		double *log_rand_two, double *log_t_curr, double* log_t_next,
-		double log_states[][MAX_HISTORY],
-		double log_propensities[][MAX_HISTORY],
-		double* log_choosen_propensities, double *log_reaction_indices,
-		double curr_rand_one, double curr_rand_two, double curr_t_curr,
-		double curr_t_next, double curr_states[MAX_STATES],
-		double curr_propensities[MAX_REACTIONS], double curr_choosen_propensity,
-		double curr_reaction_index)
-{
-
-	//std::cout<<"function : "<<__FUNCTION__<<"  level: "<< level << std::endl;
-	if (logging_flag_of_var[RAND_ONE] == true)
-	{
-		log_rand_one[i] = curr_rand_one;
-	}
-	if (logging_flag_of_var[RAND_TWO] == true)
-	{
-		log_rand_two[i] = curr_rand_two;
-	}
-	if (logging_flag_of_var[T_CURR] == true)
-	{
-		log_t_curr[i] = curr_t_curr;
-	}
-	if (logging_flag_of_var[T_NEXT] == true)
-	{
-		log_t_next[i] = curr_t_next;
-	}
-	if (logging_flag_of_var[ STATES] == true)
-	{
-		for (int j = 0; j < num_states; j++)
-		{
-			log_states[j][i] = curr_states[j];
-		}
-	}
-	if (logging_flag_of_var[PROPENSITIES] == true)
-	{
-		for (int j = 0; j < num_reactions; j++)
-		{
-			log_propensities[j][i] = curr_propensities[j];
-		}
-	}
-	if (logging_flag_of_var[CHOOSEN_PROPENSITY] == true)
-	{
-		log_choosen_propensities[i] = curr_choosen_propensity;
-	}
-	if (logging_flag_of_var[REACTION_INDICIES] == true)
-	{
-		log_reaction_indices[i] = curr_reaction_index;
-	}
-
-}
-void write_log_to_file( int i, int maxHistory, LOGLEVEL level, int num_states,
-		int num_reactions, bool* logging_flag_of_var, double *log_rand_one,
-		double *log_rand_two, double *log_t_curr, double* log_t_next,
-		double log_states[MAX_STATES][MAX_HISTORY],
-		double log_propensities[MAX_REACTIONS][MAX_HISTORY],
-		double* log_choosen_propensities, double *log_reaction_indices)
-{
-	std::ofstream stream;
-	stream.open("log.txt", std::ios_base::binary | std::ios_base::out);
-	for(int k = 0; k<maxHistory; k++)
-	{
-
-		//std::cout<<"level: "<< level << std::endl;
-		if (logging_flag_of_var[RAND_ONE] == true)
-		{
-
-			stream<<"rand one : " <<log_rand_one[k]<<std::endl;
-		}
-		if (logging_flag_of_var[RAND_TWO] == true)
-		{
-			//std::cout<<"rand two: "<<log_rand_one[k]<<std::endl;
-			stream<<"rand two : " <<log_rand_two[k]<<std::endl;
-		}
-		if (logging_flag_of_var[T_CURR] == true)
-		{
-			stream<<"t_curr : "<<log_t_curr[i]<<std::endl;
-		}
-		if (logging_flag_of_var[T_NEXT] == true)
-		{
-			stream<<"t_next: "<<log_t_next[i]<<std::endl;
-		}
-		if (logging_flag_of_var[STATES] == true)
-		{
-			stream<<"state vector : ";
-			for (int j = 0; j < num_states; j++)
-			{
-				stream<<log_states[j][i]<<"  ";
-			}
-			stream<<std::endl;
-		}
-		if (logging_flag_of_var[PROPENSITIES] == true)
-		{
-			stream<<"propensity vector : ";
-			for (int j = 0; j < num_reactions; j++)
-			{
-				stream<<log_propensities[j][i]<<"  ";
-			}
-			stream<<std::endl;
-		}
-		if (logging_flag_of_var[CHOOSEN_PROPENSITY] == true)
-		{
-			stream<<"chosen propensity : "<<log_choosen_propensities[i]<<std::endl;
-		}
-		if (logging_flag_of_var[REACTION_INDICIES] == true)
-		{
-			stream<<"current reaction index : "<<log_reaction_indices[i]<<std::endl;
-		}
-		stream<<std::endl;
-
-	}
-	stream.close();
-
-}
-#endif
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -240,59 +50,59 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	plhs[0] = mxCreateDoubleMatrix(SSA_NumStates * numTimepts, 1, mxREAL);
 	timecourse = mxGetPr(plhs[0]);
 
-	/* program debug */
-//#ifdef PROGRAM_DEBUG
-//	INITIALIZE_CLOG(DEBUG)
-//#endif
-
-	/* logging parameters */
-
 #ifdef LOGGING
-	//std::cout<<"logging is enabled"<<std::endl;
+	/* this should be declared in header file */
+	int maxHistory = 10;
+
 	LOGLEVEL level;
-	/* memory allocation of variables */
+
 #ifdef LEVEL_ALL
 
-	double log_rand_one[MAX_HISTORY];
-	double log_rand_two[MAX_HISTORY];
-	double log_t_curr[MAX_HISTORY];
-	double log_t_next[MAX_HISTORY];
-	double log_current_states [SSA_NumStates][MAX_HISTORY];
-	double log_propensities [SSA_NumReactions][MAX_HISTORY];
-	double log_choosen_propensity [MAX_HISTORY];
-	double log_reaction_index [MAX_HISTORY];
+	/* memory allocation of variables */
+	double logRandOne[MAX_HISTORY];
+	double logRandTwo[MAX_HISTORY];
+	double logTCurr[MAX_HISTORY];
+	double logTNext[MAX_HISTORY];
+	double logCurrentStates [MAX_HISTORY][SSA_NumStates];
+	double logPropensities [MAX_HISTORY][SSA_NumReactions];
+	double logChosenPropensity [MAX_HISTORY];
+	double logChosenReactionIndex [MAX_HISTORY];
 
 	/* set level */
 	level = ALL;
-	//std::cout<<"logging level : "<<level<<std::endl;
 
 #elif LEVEL_DEBUG
+
+	/* memory allocation of variables */
 	double *lag_rand_one = NULL;
 	double *log_rand_two = NULL;
 	double log_t_curr[MAX_HISTORY];
 	double log_t_next[MAX_HISTORY];
-	double log_current_states [SSA_NumStates][MAX_HISTORY];
-	double log_propensities [SSA_NumReactions][MAX_HISTORY];
+	double log_current_states [MAX_HISTORY][SSA_NumStates];
+	double log_propensities [MAX_HISTORY][SSA_NumReactions];
 	double *log_choosen_propensity = NULL;
 	double log_reaction_index [MAX_HISTORY];
 
 	/* set level */
 	level = DEBUG;
-	//std::cout<<"logging level : "<<level<<std::endl;
 
 #elif LEVEL_INFO
+
+	/* memory allocation of variables */
 	double *log_rand_one = NULL;
 	double *log_rand_two = NULL;
 	double *log_t_curr = NULL;
 	double *log_t_next = NULL;
-	double log_current_states [SSA_NumStates][MAX_HISTORY];
-	double log_propensities [SSA_NumReactions][MAX_HISTORY];
+	double log_current_states [MAX_HISTORY][SSA_NumStates];
+	double log_propensities [MAX_HISTORY][SSA_NumReactions];
 	double *log_choosen_propensity = NULL;
 	double log_reaction_index [MAX_HISTORY];
 	/* set level */
 	level = INFO;
-	//std::cout<<"logging level : "<<level<<std::endl;
+
 #else
+
+	/* memory allocation of variables */
 	double *log_rand_one = NULL;
 	double *log_rand_two = NULL;
 	double *log_t_curr = NULL;
@@ -304,7 +114,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	/* set level */
 	level = OFF;
-	//std::cout<<"logging level : "<<level<<std::endl;
+
 #endif
 
 	/*definition of log levels */
@@ -320,14 +130,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	log_level_of_var[T_NEXT] = 1;
 	log_level_of_var[STATES] = 2;
 	log_level_of_var[PROPENSITIES] = 2;
-	log_level_of_var[CHOOSEN_PROPENSITY] = 1;
-	log_level_of_var[REACTION_INDICIES] = 2;
+	log_level_of_var[CHOSEN_PROPENSITY] = 1;
+	log_level_of_var[REACTION_INDEX] = 2;
 
 	/* initialize the logging flag for variables */
 	bool logging_flag_of_var[NUM_VARS];
 	initializeLoggingFlags(level,log_level_of_var,logging_flag_of_var);
 
 #endif
+
 	/* Write initial conditions to output */
 	iTime = 0;
 	for (int i = 0; i < SSA_NumStates; i++)
@@ -389,7 +200,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		/* Update xCurr */
 		updateState(xCurr, reactionIndex);
 		everythingCounts = everythingCounts + 1;
-		if (everythingCounts > MAX_HISTORY)
+		if (everythingCounts > maxHistory)
 		{
 			everythingCounts = 0;
 		}
@@ -401,12 +212,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		if(level < OFF)
 		{
 			//std::cout<<"updating logs...\n"<<std::endl;
-			update_logRotation(everythingCounts, MAX_HISTORY,level, SSA_NumStates ,
-					SSA_NumReactions, logging_flag_of_var, log_rand_one,
-					log_rand_two, log_t_curr,log_t_next,
-					log_current_states,
-					log_propensities,
-					log_choosen_propensity, log_reaction_index,
+			update_logRotation(everythingCounts,level, logging_flag_of_var, logRandOne,
+					logRandTwo, logTCurr,logTNext,
+					logCurrentStates,
+					logPropensities,
+					logChosenPropensity, logChosenReactionIndex,
 					rand1, rand2, tCurr,
 					tNext, xCurr,
 					cumProps,
@@ -414,16 +224,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		}
 #endif
 	}
-#ifdef LOGGING
-//	std::cout<<"writing logs to file\n"<<std::endl;
-//	std::cout<<"writing to file \n";
 
-	write_log_to_file( everythingCounts, MAX_HISTORY,level, SSA_NumStates ,
-			SSA_NumReactions, logging_flag_of_var, log_rand_one,
-			log_rand_two, log_t_curr,log_t_next,
-			log_current_states,
-			log_propensities,
-			log_choosen_propensity, log_reaction_index);
+#ifdef LOGGING
+
+	std::string file_name("panic_log.txt");
+	write_log(FILE_OUTPUT,file_name, everythingCounts, maxHistory,level, logging_flag_of_var, logRandOne,
+			logRandTwo, logTCurr,logTNext,
+			logCurrentStates,
+			logPropensities,
+			logChosenPropensity, logChosenReactionIndex);
 
 #endif
 
