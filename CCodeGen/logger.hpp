@@ -9,6 +9,8 @@
 #define NUM_VARS 8
 #define MAX_HISTORY 1000
 #define MAX_VAR_LEN 30
+
+/* Assigns an index to a variable */
 enum VAR
 {
 	RAND_ONE = 0,
@@ -21,20 +23,31 @@ enum VAR
 	REACTION_INDEX
 };
 
+/* assigns name to variables which will be used during logging */
+
 char NAME_OF_VAR[][MAX_VAR_LEN] =
 { "rand_one", "rand_two", "t_curr", "t_next", "state vector",
 		"propensity vector", "chosen propensity", "chosen reaction index" };
 
 std::string COLON(": ");
 
+/*defines the different output destinations */
 enum OUTPUT
 {
 	STD_OUTPUT = 0, FILE_OUTPUT
 };
+
+/* Defines the log level */
 enum LOGLEVEL
 {
 	ALL = 0, DEBUG, INFO, OFF
 };
+
+/****************************************************************
+ * This function returns true if the given variable should be
+ *logged according to the set severity level.
+ ****************************************************************/
+
 bool shouldBeLogged(LOGLEVEL level, int *log_level_vars, VAR var)
 {
 	if (log_level_vars[var] >= level)
@@ -43,6 +56,11 @@ bool shouldBeLogged(LOGLEVEL level, int *log_level_vars, VAR var)
 	}
 	return false;
 }
+
+/****************************************************************
+ *Assigns the logging flag to each variable according to
+ *required log level
+ ****************************************************************/
 void initializeLoggingFlags(LOGLEVEL level, int* log_level_of_vars,
 		bool* logging_flag_of_var)
 {
@@ -80,6 +98,12 @@ void initializeLoggingFlags(LOGLEVEL level, int* log_level_of_vars,
 	}
 
 }
+
+/*******************************************************
+ * This function is called after each reaction to update
+ * the current state of the system. The number of variables
+ * updated depends on severity level of logging
+ *******************************************************/
 
 void update_logRotation(int i, LOGLEVEL level, bool* logging_flag_of_var,
 		double *log_rand_one, double *log_rand_two, double *log_t_curr,
@@ -132,6 +156,10 @@ void update_logRotation(int i, LOGLEVEL level, bool* logging_flag_of_var,
 
 }
 
+/****************************************************************
+ * This function writes the current state of the system to
+ * the require output.
+ ****************************************************************/
 void writeOneStep(OUTPUT method, std::ofstream& fstream, LOGLEVEL level,
 		bool* logging_flag_of_var, double log_rand_one, double log_rand_two,
 		double log_t_curr, double log_t_next, double log_states[],
@@ -140,6 +168,8 @@ void writeOneStep(OUTPUT method, std::ofstream& fstream, LOGLEVEL level,
 {
 
 	std::stringstream stream;
+
+	/* put the data in string stream */
 	if (logging_flag_of_var[RAND_ONE] == true)
 	{
 
@@ -199,6 +229,7 @@ void writeOneStep(OUTPUT method, std::ofstream& fstream, LOGLEVEL level,
 
 	}
 
+	/* write the string stream to required output */
 	if (method == STD_OUTPUT)
 	{
 		std::cout << stream.rdbuf();
@@ -210,6 +241,9 @@ void writeOneStep(OUTPUT method, std::ofstream& fstream, LOGLEVEL level,
 	}
 }
 
+/****************************************************************
+ * This function writes the last n states of the system.
+ ****************************************************************/
 void write_log(OUTPUT destination, std::string file_name, int i, int maxHistory,
 		LOGLEVEL level, bool* logging_flag_of_var, double *log_rand_one,
 		double *log_rand_two, double *log_t_curr, double* log_t_next,
