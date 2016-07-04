@@ -40,21 +40,25 @@ function [] = dr_writeModelDef(System, ModelStringMapping)
     % Write Cpp Header
     fprintf(fid,'#include "mex.h"\n');
     fprintf(fid,'#include <cmath>\n');
-    fprintf(fid,'#include <algorithm>\n\n');
+    fprintf(fid,'#include <algorithm>\n');
+    fprintf(fid,'#include "DRTB_modeldefHeader_tmp.hpp"\n');
+    fprintf(fid,'#include "logger.hpp"\n\n');
 
     % Write calculateCumProps
-    fprintf(fid,'void calculateCumProps(double* DRTB_CumProp, double* DRTB_State, double* DRTB_Param)\n');
+    fprintf(fid,'int calculateCumProps(double* DRTB_CumProp, double* DRTB_State, double* DRTB_Param)\n');
     fprintf(fid,'{\n');
     for i = 1:numel(ModelCumPropStrings)
        fprintf(fid,['\t' ModelCumPropStrings{i} '\n']); 
+       fprintf(fid,'\tCHECK_NOTNEG(DRTB_CumProp[%d]);\n',i-1);
       
 
     end
+    fprintf(fid,'\treturn 0;\n');
     fprintf(fid,'}\n\n');
 
     
     % Write updateState
-    fprintf(fid,'void updateState(double* DRTB_State, int reactionID)\n');
+    fprintf(fid,'int updateState(double* DRTB_State, int reactionID)\n');
     fprintf(fid,'{\n');
     fprintf(fid,'    switch(reactionID)\n');
     fprintf(fid,'     {\n');
@@ -70,10 +74,11 @@ function [] = dr_writeModelDef(System, ModelStringMapping)
             ProductStr = dr_parseSymToString(System.reaction(i).product(i2),ModelStringMapping);
             fprintf(fid,[ProductStr ' = ' ProductStr ' + 1; ']);
         end
-        
-        fprintf(fid,'break;\n');
+         fprintf(fid,'\n\t\t\t\tCHECK_NOTNEG(DRTB_State[%d]);\n',i-1);
+        fprintf(fid,'\t\tbreak;\n');
     end
     fprintf(fid,'     }\n');
+     fprintf(fid,'\treturn 0;\n');
     fprintf(fid,'}\n');
     
     fclose(fid);

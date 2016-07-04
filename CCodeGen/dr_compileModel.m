@@ -47,6 +47,7 @@ function [] = dr_compileModel(System, ExecID, cleanup)
     dr_writeModelDefHeader(System);              % 'DRTB_modeldefHeader_tmp.hpp'
     copyfile(which('DRTB_simulateSSA.cpp'),'DRTB_simulateSSA_tmp.cpp');
     copyfile(which('logger.hpp'),'logger.hpp');
+    copyfile(which('logger.cpp'),'logger.cpp');
 
     % Execute compilation
     % Aggressively optimized mex-call
@@ -59,7 +60,7 @@ function [] = dr_compileModel(System, ExecID, cleanup)
         CXXFLAGS="-std=c++11 -D_GNU_SOURCE -DLEVEL_ALL -DLOGGING  -fPIC -fno-omit-frame-pointer -fopenmp" ...
         LDOPTIMFLAGS=-O3 ...
         LDFLAGS='-pthread -shared -fopenmp -Wl,--no-undefined ' ...
-        DRTB_simulateSSA_tmp.cpp DRTB_modeldef_tmp.cpp
+        DRTB_simulateSSA_tmp.cpp DRTB_modeldef_tmp.cpp logger.cpp
 
 
 %     mex  -output DRTB_executeable_tmp -v -cxx  ...

@@ -39,8 +39,8 @@ function [] = dr_writeModelDefHeader(System)
     fprintf(fid,['#define SSA_NumStates     ' num2str(numel(System.state.variable))     '\n']);
     fprintf(fid,['#define SSA_NumReactions  ' num2str(numel(System.reaction))           '\n']);
     fprintf(fid,['#define SSA_NumParameters ' num2str(numel(System.parameter.variable)) '\n']);
-    fprintf(fid,'void calculateCumProps(double* DRTB_CumProp, double* DRTB_State, double* DRTB_Param);\n');
-    fprintf(fid,'void updateState(double* DRTB_State, int reactionID);\n\n');
+    fprintf(fid,'int calculateCumProps(double* DRTB_CumProp, double* DRTB_State, double* DRTB_Param);\n');
+    fprintf(fid,'int updateState(double* DRTB_State, int reactionID);\n\n');
     fprintf(fid,'#endif\n');
     fclose(fid);
 end
