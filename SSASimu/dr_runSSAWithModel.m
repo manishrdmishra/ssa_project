@@ -1,4 +1,4 @@
-function Timecourse = dr_runSSAWithModel(timepoints, x0, parameters, ExecID) %#ok<*INUSL>
+function Timecourse = dr_runSSAWithModel(timepoints, x0, parameters, ExecID,numruns) %#ok<*INUSL>
 %% Run SSA simulation for compiled model without re-compiling
 %
 % Input:
@@ -9,14 +9,16 @@ function Timecourse = dr_runSSAWithModel(timepoints, x0, parameters, ExecID) %#o
 %              as System.parameter.variable of creating struct
 % ExecID     - Name of SSA executable (e.g. produced with dr_compileModel)
 %              Executable needs to be on Matlab Path
+% numruns    - Number of replicates desired
 %
 % Output:
-% Timecourse - NxM array, where N = #States and M = #timepoints
+% Timecourse - NxMxZ array, where N = #States, M = #timepoints and
+% Z = numruns
 %
 % -------------------------------------------------------------------------
 % Initial creation:  06.11.2014
 % Last major update: 07.11.2014
-% Contact: Dennis Rickert (dennis.rickert@helmholtz-muenchen.de) 
+% Contact: Dennis Rickert (dennis.rickert@helmholtz-muenchen.de)
 %
 % Not published anywhere, under any license whatsoever. If you're using
 % this without working at the ICB, you're a bad person and should feel bad
@@ -28,11 +30,14 @@ function Timecourse = dr_runSSAWithModel(timepoints, x0, parameters, ExecID) %#o
 % deep copies when the variable is changed; however, Matlab doesn't notice
 % manipulation that happens in compiled mex files, resulting in hilarious
 % bugs avoided by adding +0.
-    Timecourse      = zeros(length(x0),length(timepoints));
-    x               = x0+0; %#ok<*NASGU> % 
+Timecourse      = zeros(length(timepoints),length(x0),numruns);
+x               = x0+0; %#ok<*NASGU> %
 
-    % Calculation of entire trajectory
-    Timecourse = eval([ExecID '(x, parameters, timepoints,numel(timepoints))']);%#ok<*ASGLU>
-    Timecourse = reshape(Timecourse,numel(x), numel(timepoints));
+% Calculation of entire trajectory
+for i = 1:numruns
+    temp = eval([ExecID '(x, parameters, timepoints,numel(timepoints))']);%#ok<*ASGLU>
+    Timecourse(:,:,i) = reshape(temp, numel(timepoints),numel(x));
+end
+
 end
 

@@ -1,7 +1,7 @@
 #include "mex.h"
 #include "DRTB_modeldefHeader_tmp.hpp"
 #ifdef LOGGING
-#include "logger.hpp"
+#include "logger_tmp.hpp"
 #endif
 #include <cmath>
 #include <algorithm>
@@ -50,7 +50,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	timecourse = mxGetPr(plhs[0]);
 
 #ifdef LOGGING
-	//std::cout<<"logging enabled...\n"<<std::endl;
+	/* Panic log file name */
+	std::string panic_file_name("panic_log.txt");
+	std::ofstream panic_fstream;
+
+	/* periodic log file */
+	std::string periodic_file_name("periodic_log.txt");
+	std::ofstream periodic_fstream;
+	openOutputStream(periodic_file_name, periodic_fstream);
+
+//std::cout<<"logging enabled...\n"<<std::endl;
 	/* this should be declared in header file */
 	int maxHistory = 10;
 
@@ -151,9 +160,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	/* Start iteration*/
 	tCurr = timepoints[0];
 	tNext = timepoints[iTime];
-	int everythingCounts = 0;
-	int historyCounts = 0;
-	int PERIOD = 1000;
+	long long unsigned globalCounter = 0;
+	long long unsigned historyCounts = 0;
+	long long unsigned PERIOD = 10;
 
 	while (tCurr < timepoints[numTimepts - 1])
 	{
@@ -167,13 +176,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		if (retVal == -1)
 		{
 #ifdef LOGGING
-
-			/* the name of file should not be specified here
-			 * it should come as parameter
-			 */
-			std::string file_name("panic_log.txt");
-
-			writeLastNSteps(FILE_OUTPUT,file_name, everythingCounts, maxHistory,level, logging_flag_of_var, logRandOne,
+			openOutputStream(panic_file_name, panic_fstream);
+			writeLastNSteps(FILE_OUTPUT,panic_fstream, historyCounts, maxHistory,level, logging_flag_of_var, logRandOne,
 					logRandTwo, logTCurr,logTNext,
 					logCurrentStates,
 					logPropensities,
@@ -185,26 +189,34 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		}
 
 		/* Sample reaction time*/
-		tCurr = tCurr + 1 / cumProps[SSA_NumReactions - 1] * log(1 / rand1);
+		double temp = cumProps[SSA_NumReactions - 1] * log(1 / rand1);
+		if (temp <= 0)
+		{
+#ifdef LOGGING
 
-		// Debugging information
-		//if(everythingCounts >= 50000)
-		//{
-		//  mexPrintf("CPP main calculation: tnow %.8fs | tnext %.8fs | 1/prop %.16f | log(1/prop) %.4f |rand %.4f | dt %.16f\n", tCurr, tNext,1/cumProps[SSA_NumReactions-1], log10(1/cumProps[SSA_NumReactions-1]),log(1/rand1),1/cumProps[SSA_NumReactions-1]*log(1/rand1));
-		//  everythingCounts = 0;
-		//}
+			openOutputStream(panic_file_name, panic_fstream);
+			writeLastNSteps(FILE_OUTPUT,panic_fstream, historyCounts, maxHistory,level, logging_flag_of_var, logRandOne,
+					logRandTwo, logTCurr,logTNext,
+					logCurrentStates,
+					logPropensities,
+					logChosenPropensity, logChosenReactionIndex);
+
+#endif
+			mexErrMsgIdAndTxt("SSA:InvalidTcurr",
+					"Value of tCurr can not be negative");
+		}
+		tCurr = tCurr + 1 / temp;
 
 		/* If time > time out, write next datapoint to output*/
 		while (tCurr >= tNext && iTime < numTimepts)
 		{
-			// Debugging information
-			// mexPrintf("This is bound to be good: tnow %.8fs | tnext %.8fs | 1/prop %.16f | log(1/prop) %.4f |rand %.4f | dt %.16f\n", tCurr, tNext,1/cumProps[SSA_NumReactions-1], log10(1/cumProps[SSA_NumReactions-1]),log(1/rand1),1/cumProps[SSA_NumReactions-1]*log(1/rand1));
 
+			// this will save the repeated calculation
+			int cIndex = iTime * SSA_NumStates;
 			for (int i = 0; i < SSA_NumStates; i++)
 			{
-				//cIndex  =  iTime *  SSA_NumStates this will save the repeated calcuation
 
-				timecourse[iTime * SSA_NumStates + i] = xCurr[i];
+				timecourse[cIndex + i] = xCurr[i];
 				//   mexPrintf(" %d",xCurr[i]);
 			}
 			//mexPrintf("\n");
@@ -218,34 +230,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		for (int i = 1; cumProps[i - 1] <= chosenProp; i++)
 			reactionIndex = i + 1;
 
-		/* Update xCurr */
-		retVal = updateState(xCurr, reactionIndex);
-		//retVal = -1;
-		if (retVal == -1)
-		{
-#ifdef LOGGING
-
-			/* the name of file should not be specified here
-			 * it should come as parameter
-			 */
-			std::string file_name("panic_log.txt");
-
-			writeLastNSteps(FILE_OUTPUT,file_name, everythingCounts, maxHistory,level, logging_flag_of_var, logRandOne,
-					logRandTwo, logTCurr,logTNext,
-					logCurrentStates,
-					logPropensities,
-					logChosenPropensity, logChosenReactionIndex);
-
-#endif
-			mexErrMsgIdAndTxt("SSA:InvalidState",
-					"The value of state can not be negative");
-		}
 		//std::cout<<"updating logs...\n"<<std::endl;
+		globalCounter = globalCounter + 1;
 #ifdef  LOGGING
 		/* this call store the parameters of simulation which can used to print
 		 * at later stage in case of any error
 		 */
-
+		historyCounts = historyCounts + 1;
 		if (historyCounts > maxHistory)
 		{
 			historyCounts = 0;
@@ -264,30 +255,23 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 					chosenProp ,reactionIndex);
 		}
 
-		everythingCounts = everythingCounts + 1;
-		//mexPrintf("count: %d\n", everythingCounts);
-		if (everythingCounts >= PERIOD)
-		{
-			/* the name of file should not be specified here
-			 * it should come as parameter
-			 */
-			//mexPrintf("printing logs..");
-			std::string file_name("periodic_log.txt");
-			std::ofstream monitor_fstream;
-			monitor_fstream.open(file_name.c_str(),
-					std::ios_base::app | std::ios_base::ate | std::ios_base::out
-					| std::ios_base::binary);
+		//std::cout<<"global count: "<<globalCounter<<"\n";
 
-			writeOneStep(FILE_OUTPUT,monitor_fstream, level, logging_flag_of_var, rand1,
+		if (globalCounter % PERIOD == 0)
+		{
+
+			//mexPrintf("printing logs..");
+			writeOneStep(FILE_OUTPUT,periodic_fstream,globalCounter, level, logging_flag_of_var, rand1,
 					rand2, tCurr,tNext,
 					xCurr,cumProps,
 					chosenProp, reactionIndex);
-			monitor_fstream.close();
-			everythingCounts = 0;
 
 		}
 #endif
 	}
-
+#ifdef LOGGING
+	panic_fstream.close();
+	periodic_fstream.close();
+#endif
 }
 

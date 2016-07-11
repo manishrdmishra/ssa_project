@@ -38,32 +38,43 @@ enum LOGLEVEL
 	ALL = 0, DEBUG, INFO, OFF
 };
 
-extern bool shouldBeLogged(LOGLEVEL level, int *log_level_vars, VAR var);
+bool shouldBeLogged(LOGLEVEL level, int *log_level_vars, VAR var);
 
-extern void initializeLoggingFlags(LOGLEVEL level, int* log_level_of_vars,
+void initializeLoggingFlags(LOGLEVEL level, int* log_level_of_vars,
 		bool* logging_flag_of_var);
 
-extern void update_logRotation(int i, LOGLEVEL level, bool* logging_flag_of_var,
-		double *log_rand_one, double *log_rand_two, double *log_t_curr,
-		double* log_t_next, double log_states[][SSA_NumStates],
+void update_logRotation(long long unsigned i, LOGLEVEL level,
+		bool* logging_flag_of_var, double *log_rand_one, double *log_rand_two,
+		double *log_t_curr, double* log_t_next,
+		double log_states[][SSA_NumStates],
 		double log_propensities[][SSA_NumReactions],
 		double* log_choosen_propensities, double *log_reaction_indices,
 		double curr_rand_one, double curr_rand_two, double curr_t_curr,
 		double curr_t_next, double curr_states[], double curr_propensities[],
 		double curr_choosen_propensity, double curr_reaction_index);
 
-extern void writeOneStep(OUTPUT method, std::ofstream& fstream, LOGLEVEL level,
+void writeOneStep(OUTPUT method, std::ofstream& fstream,
+		long long unsigned current_step, LOGLEVEL level,
 		bool* logging_flag_of_var, double log_rand_one, double log_rand_two,
 		double log_t_curr, double log_t_next, double log_states[],
 		double log_propensities[], double log_choosen_propensities,
 		double log_reaction_indices);
 
-extern void writeLastNSteps(OUTPUT destination, std::string file_name, int i,
-		int maxHistory, LOGLEVEL level, bool* logging_flag_of_var,
-		double *log_rand_one, double *log_rand_two, double *log_t_curr,
-		double* log_t_next, double log_states[][SSA_NumStates],
+void writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
+		long long unsigned currentHistoryStep, long long unsigned maxHistory,
+		LOGLEVEL level, bool* logging_flag_of_var, double *log_rand_one,
+		double *log_rand_two, double *log_t_curr, double* log_t_next,
+		double log_states[][SSA_NumStates],
 		double log_propensities[][SSA_NumReactions],
 		double* log_choosen_propensities, double *log_reaction_indices);
+//void writePeriodicLog(OUTPUT method, std::ofstream& fstream,
+//		long long unsigned current_step, LOGLEVEL level,
+//		bool* logging_flag_of_var, double log_rand_one, double log_rand_two,
+//		double log_t_curr, double log_t_next, double log_states[],
+//		double log_propensities[], double log_choosen_propensities,
+//		double log_reaction_indices);
+void openOutputStream(std::string file_name, std::ofstream& fstream);
+void closeOutputStream(std::ofstream& fstream);
 
 #define CHECK_NOTNEG(x) if (x < 0) { mexPrintf("The propensity is : %lf",x);return -1;}
 #endif

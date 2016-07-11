@@ -29,7 +29,7 @@ function [] = dr_compileModel(System, ExecID, cleanup)
 %% Core Algorithm
     % Set cleanup if not specified
     if ~exist('cleanup','var'),
-        cleanup = 0;
+        cleanup = 1;
     end
     
     % Create temporary working directory
@@ -46,8 +46,8 @@ function [] = dr_compileModel(System, ExecID, cleanup)
     dr_writeModelDef(System,ModelStringMapping); % 'DRTB_modeldef_tmp.cpp'
     dr_writeModelDefHeader(System);              % 'DRTB_modeldefHeader_tmp.hpp'
     copyfile(which('DRTB_simulateSSA.cpp'),'DRTB_simulateSSA_tmp.cpp');
-    copyfile(which('logger.hpp'),'logger.hpp');
-    copyfile(which('logger.cpp'),'logger.cpp');
+    copyfile(which('logger.hpp'),'logger_tmp.hpp');
+    copyfile(which('logger.cpp'),'logger_tmp.cpp');
 
     % Execute compilation
     % Aggressively optimized mex-call
@@ -60,7 +60,7 @@ function [] = dr_compileModel(System, ExecID, cleanup)
         CXXFLAGS="-std=c++11 -D_GNU_SOURCE -DLEVEL_ALL -DLOGGING  -fPIC -fno-omit-frame-pointer -fopenmp" ...
         LDOPTIMFLAGS=-O3 ...
         LDFLAGS='-pthread -shared -fopenmp -Wl,--no-undefined ' ...
-        DRTB_simulateSSA_tmp.cpp DRTB_modeldef_tmp.cpp logger.cpp
+        DRTB_simulateSSA_tmp.cpp DRTB_modeldef_tmp.cpp logger_tmp.cpp
 
 
 %     mex  -output DRTB_executeable_tmp -v -cxx  ...

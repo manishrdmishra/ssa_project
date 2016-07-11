@@ -1,4 +1,4 @@
-#include "logger.hpp"
+#include "logger_tmp.hpp"
 
 /* assigns name to variables which will be used during logging */
 
@@ -70,9 +70,10 @@ void initializeLoggingFlags(LOGLEVEL level, int* log_level_of_vars,
  * updated depends on severity level of logging
  *******************************************************/
 
-void update_logRotation(int i, LOGLEVEL level, bool* logging_flag_of_var,
-		double *log_rand_one, double *log_rand_two, double *log_t_curr,
-		double* log_t_next, double log_states[][SSA_NumStates],
+void update_logRotation(long long unsigned i, LOGLEVEL level,
+		bool* logging_flag_of_var, double *log_rand_one, double *log_rand_two,
+		double *log_t_curr, double* log_t_next,
+		double log_states[][SSA_NumStates],
 		double log_propensities[][SSA_NumReactions],
 		double* log_choosen_propensities, double *log_reaction_indices,
 		double curr_rand_one, double curr_rand_two, double curr_t_curr,
@@ -125,7 +126,8 @@ void update_logRotation(int i, LOGLEVEL level, bool* logging_flag_of_var,
  * This function writes the current state of the system to
  * the require output.
  ****************************************************************/
-void writeOneStep(OUTPUT method, std::ofstream& fstream, LOGLEVEL level,
+void writeOneStep(OUTPUT method, std::ofstream& fstream,
+		long long unsigned current_step, LOGLEVEL level,
 		bool* logging_flag_of_var, double log_rand_one, double log_rand_two,
 		double log_t_curr, double log_t_next, double log_states[],
 		double log_propensities[], double log_choosen_propensities,
@@ -135,6 +137,7 @@ void writeOneStep(OUTPUT method, std::ofstream& fstream, LOGLEVEL level,
 	std::stringstream stream;
 
 	/* put the data in string stream */
+	stream << current_step << COLON << std::endl;
 	if (logging_flag_of_var[RAND_ONE] == true)
 	{
 
@@ -209,22 +212,36 @@ void writeOneStep(OUTPUT method, std::ofstream& fstream, LOGLEVEL level,
 /****************************************************************
  * This function writes the last n states of the system.
  ****************************************************************/
-void writeLastNSteps(OUTPUT destination, std::string file_name, int i, int maxHistory,
-		LOGLEVEL level, bool* logging_flag_of_var, double *log_rand_one,
-		double *log_rand_two, double *log_t_curr, double* log_t_next,
+void writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
+		long long unsigned i, long long unsigned maxHistory, LOGLEVEL level,
+		bool* logging_flag_of_var, double *log_rand_one, double *log_rand_two,
+		double *log_t_curr, double* log_t_next,
 		double log_states[][SSA_NumStates],
 		double log_propensities[][SSA_NumReactions],
 		double* log_choosen_propensities, double *log_reaction_indices)
 {
 
-	std::ofstream fstream;
-	fstream.open(file_name.c_str(),
-			std::ios_base::app | std::ios_base::ate | std::ios_base::out
-					| std::ios_base::binary);
-	for (int k = 0; k < maxHistory; k++)
+//	std::ofstream fstream;
+//	fstream.open(file_name.c_str(),
+//			std::ios_base::app | std::ios_base::ate | std::ios_base::out
+//					| std::ios_base::binary);
+	/* write from the current counter to the first one */
+	int temp = maxHistory;
+	std::cout << "current step : " << i << std::endl;
+	for (int k = i; k >= 0; k--)
 	{
 
-		writeOneStep(destination, fstream, level, logging_flag_of_var,
+		writeOneStep(destination, fstream, temp--, level, logging_flag_of_var,
+				log_rand_one[k], log_rand_two[k], log_t_curr[k], log_t_next[k],
+				log_states[k], log_propensities[k], log_choosen_propensities[k],
+				log_reaction_indices[k]);
+
+	}
+	/* write from the maxHistory to the (current_counter - 1) */
+	for (int k = maxHistory; k < i; k--)
+	{
+
+		writeOneStep(destination, fstream, temp--, level, logging_flag_of_var,
 				log_rand_one[k], log_rand_two[k], log_t_curr[k], log_t_next[k],
 				log_states[k], log_propensities[k], log_choosen_propensities[k],
 				log_reaction_indices[k]);
@@ -232,4 +249,29 @@ void writeLastNSteps(OUTPUT destination, std::string file_name, int i, int maxHi
 	}
 	fstream.close();
 }
+/****************************************************************
+ * This function open the output stream for writing to corresponding
+ * given file.
+ ****************************************************************/
+void openOutputStream(std::string file_name, std::ofstream& fstream)
+{
 
+	if (fstream.is_open() == false)
+	{
+		fstream.open(file_name.c_str(),
+				std::ios_base::app | std::ios_base::ate | std::ios_base::out
+						| std::ios_base::binary);
+	}
+}
+
+/****************************************************************
+ * This function close the output stream.
+ ****************************************************************/
+void closeOutputStream(std::ofstream& fstream)
+{
+	if (fstream.is_open() == false)
+	{
+		fstream.close();
+	}
+
+}
