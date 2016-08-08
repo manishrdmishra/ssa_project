@@ -112,7 +112,7 @@ end
 
 
 Nssa = 1000;
-%Nssa = 1;
+%Nssa = 5;
 %% Matlab based SSA simulation
 v = @(X) theta.*[X(1);X(2);X(2);X(3);X(3);X(4);X(1)*X(4)];
 S = [-1 +1  0  0  0  0 -1;...
@@ -136,14 +136,44 @@ toc,
 %% Optimized SSA simulation
 tic,
 
-dr_compileModel(system,'testAtefeh',1);
+%% specify the compiler options
+field1 = 'cleanup';  value1 = 1;
+field2 = 'compiler_optimization';  value2 = 1;
+
+compiler_options = struct(field1,value1,field2, value2);
+
+
+
+
+%% specify the options for mex executable 
+
+% Filed 1 keeps the name of the file which save the states of the 
+% simulation at the time of panic.
+field1 = 'panic_file_name';  value1 = 'panic_log.txt';
+
+
+field2 = 'periodic_file_name';  value2 = 'periodic_log.txt';
+%field2 = 'periodic_file_name';  value2 = [];
+
+% Field 3 keeps the value of the max number of history which program will save
+% will save the state of the simulation. 
+field3 = 'max_history';  value3 = cast(100,'uint64');
+%field3 = 'max_history';  value3 = [];
+
+% Field 4 keeps the value of the period after which the program
+% will save the state of the simulation. 
+field4 = 'period';  value4 = cast(100,'uint64');
+
+program_options = struct(field1,value1,field2, value2,field3, value3, field4, value4);
+
+dr_compileModel(system,'testAtefeh',compiler_options);
 
 tic,
 
 % Drawing of steady state
 a  = find(cumsum(model.p0)>=rand,1,'first');
 x0 = system.index(a,:)';
-dr_X_SSA = dr_runSSAWithModel(t,x0,theta,'testAtefeh',Nssa); % This function returns the state vector X_SSA at the prespecified time
+dr_X_SSA = dr_runSSAWithModel(t,x0,theta,program_options,'testAtefeh',Nssa); % This function returns the state vector X_SSA at the prespecified time
 % vector t.
 
 dr_m_SSA = mean(dr_X_SSA,3);

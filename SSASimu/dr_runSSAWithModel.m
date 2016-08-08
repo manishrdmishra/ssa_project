@@ -1,4 +1,4 @@
-function Timecourse = dr_runSSAWithModel(timepoints, x0, parameters, ExecID,numruns) %#ok<*INUSL>
+function Timecourse = dr_runSSAWithModel(timepoints, x0, parameters, program_options, ExecID,numruns) %#ok<*INUSL>
 %% Run SSA simulation for compiled model without re-compiling
 %
 % Input:
@@ -35,7 +35,7 @@ x               = x0+0; %#ok<*NASGU> %
 
 % Calculation of entire trajectory
 for i = 1:numruns
-    temp = eval([ExecID '(x, parameters, timepoints,numel(timepoints))']);%#ok<*ASGLU>
+    temp = eval([ExecID '(x,parameters, program_options, timepoints,numel(timepoints))']);%#ok<*ASGLU>
     Timecourse(:,:,i) = reshape(temp, numel(timepoints),numel(x));
 end
 

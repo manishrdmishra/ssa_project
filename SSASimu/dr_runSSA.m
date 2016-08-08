@@ -1,4 +1,4 @@
-function Timecourse = dr_runSSA(System,timepoints, x0, parameters, numruns) %#ok<*INUSL>
+function Timecourse = dr_runSSA(System,timepoints, x0, parameters, program_options, numruns) %#ok<*INUSL>
 %% Run compilation and SSA simulation for model
 %
 % Input:
@@ -39,7 +39,7 @@ end
 
 % Compile model, execute simulation, burn carthago
 dr_compileModel(System, ExecID, 1);
-Timecourse = dr_runSSAWithModel(timepoints, x0, parameters, ExecID,numruns); %#ok<*INUSL>
+Timecourse = dr_runSSAWithModel(timepoints, x0, parameters,program_options, ExecID,numruns); %#ok<*INUSL>
 delete(which(ExecID));
 
 end

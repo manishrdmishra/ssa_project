@@ -53,8 +53,11 @@
 
 %% Run simulation    
 %   modelName = 'largeExample01_optimized';
+tic
     modelName = 'largeExample01_basic';
     timecourse = dr_runSSAWithModel(t, x0, theta, modelName);
+     fprintf('C-based simulation time:');
+toc
 
 
     
