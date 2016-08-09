@@ -229,22 +229,47 @@ void writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
 	int temp = maxHistory;
 	std::cout << "current step : " << i << std::endl;
 	for (int k = i; k >= 0; k--)
-	{
+	{/*TODO: Bug - Change this as this will crash for DEBUG/INFO level as we are trying
+	 to access indices on null pointers ex: log_rand_one/log_rand_two
 
-		writeOneStep(destination, fstream, temp--, level, logging_flag_of_var,
+	 can be null for DEBUG case */
+#ifdef LEVEL_ALL
+		writeOneStep (destination, fstream, temp--, level, logging_flag_of_var,
 				log_rand_one[k], log_rand_two[k], log_t_curr[k], log_t_next[k],
 				log_states[k], log_propensities[k], log_choosen_propensities[k],
 				log_reaction_indices[k]);
+#elif LEVEL_DEBUG
+		writeOneStep (destination, fstream, temp--, level, logging_flag_of_var,
+				NULL, NULL, log_t_curr[k], log_t_next[k],
+				log_states[k], log_propensities[k],NULL,
+				log_reaction_indices[k]);
+#elif LEVEL_INFO
+		writeOneStep (destination, fstream, temp--, level, logging_flag_of_var,
+				NULL, NULL, NULL, NULL,
+				log_states[k], log_propensities[k],NULL,
+				log_reaction_indices[k]);
+#endif
 
 	}
 	/* write from the maxHistory to the (current_counter - 1) */
 	for (int k = maxHistory; k < i; k--)
 	{
-
-		writeOneStep(destination, fstream, temp--, level, logging_flag_of_var,
+#ifdef LEVEL_ALL
+		writeOneStep (destination, fstream, temp--, level, logging_flag_of_var,
 				log_rand_one[k], log_rand_two[k], log_t_curr[k], log_t_next[k],
 				log_states[k], log_propensities[k], log_choosen_propensities[k],
 				log_reaction_indices[k]);
+#elif LEVEL_DEBUG
+		writeOneStep (destination, fstream, temp--, level, logging_flag_of_var,
+				NULL, NULL, log_t_curr[k], log_t_next[k],
+				log_states[k], log_propensities[k],NULL,
+				log_reaction_indices[k]);
+#elif LEVEL_INFO
+		writeOneStep (destination, fstream, temp--, level, logging_flag_of_var,
+				NULL, NULL, NULL, NULL,
+				log_states[k], log_propensities[k],NULL,
+				log_reaction_indices[k]);
+#endif
 
 	}
 	fstream.close();

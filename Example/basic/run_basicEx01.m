@@ -112,7 +112,7 @@ end
 
 
 Nssa = 1000;
-%Nssa = 5;
+%Nssa = 10;
 %% Matlab based SSA simulation
 v = @(X) theta.*[X(1);X(2);X(2);X(3);X(3);X(4);X(1)*X(4)];
 S = [-1 +1  0  0  0  0 -1;...
@@ -137,10 +137,12 @@ toc,
 tic,
 
 %% specify the compiler options
-field1 = 'cleanup';  value1 = 1;
-field2 = 'compiler_optimization';  value2 = 1;
+cleanup = 'cleanup';  cleanup_value = 1; % values can be 0/1
+optimization = 'optimization';  optimization_value = 0;
+logging = 'logging'; logging_value = 1;
+logging_level = 'logging_level'; logging_level_value = 3;
 
-compiler_options = struct(field1,value1,field2, value2);
+compiler_options = struct(cleanup,cleanup_value ,optimization , optimization_value ,logging,logging_value,logging_level , logging_level_value );
 
 
 
@@ -164,7 +166,7 @@ field3 = 'max_history';  value3 = cast(100,'uint64');
 % will save the state of the simulation. 
 field4 = 'period';  value4 = cast(100,'uint64');
 
-program_options = struct(field1,value1,field2, value2,field3, value3, field4, value4);
+program_options = struct(cleanup,value1,field2, value2,field3, value3, field4, value4);
 
 dr_compileModel(system,'testAtefeh',compiler_options);
 

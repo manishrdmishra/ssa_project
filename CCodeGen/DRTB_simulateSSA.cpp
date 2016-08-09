@@ -236,14 +236,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 #elif LEVEL_DEBUG
 
 	/* memory allocation of variables */
-	double *lag_rand_one = NULL;
-	double *log_rand_two = NULL;
-	double log_t_curr[MAX_HISTORY];
-	double log_t_next[MAX_HISTORY];
-	double log_current_states [MAX_HISTORY][SSA_NumStates];
-	double log_propensities [MAX_HISTORY][SSA_NumReactions];
-	double *log_choosen_propensity = NULL;
-	double log_reaction_index [MAX_HISTORY];
+	double *logRandOne = NULL;
+	double *logRandTwo = NULL;
+	double logTCurr[MAX_HISTORY];
+	double logTNext[MAX_HISTORY];
+	double logCurrentStates [MAX_HISTORY][SSA_NumStates];
+	double logPropensities [MAX_HISTORY][SSA_NumReactions];
+	double *logChosenPropensity = NULL;
+	double logChosenReactionIndex [MAX_HISTORY];
 
 	/* set level */
 	level = DEBUG;
@@ -251,31 +251,32 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 #elif LEVEL_INFO
 
 	/* memory allocation of variables */
-	double *log_rand_one = NULL;
-	double *log_rand_two = NULL;
-	double *log_t_curr = NULL;
-	double *log_t_next = NULL;
-	double log_current_states [MAX_HISTORY][SSA_NumStates];
-	double log_propensities [MAX_HISTORY][SSA_NumReactions];
-	double *log_choosen_propensity = NULL;
-	double log_reaction_index [MAX_HISTORY];
+	double *logRandOne = NULL;
+	double *logRandTwo = NULL;
+	double *logTCurr = NULL;
+	double *logTNext = NULL;
+	double logCurrentStates [MAX_HISTORY][SSA_NumStates];
+	double logPropensities [MAX_HISTORY][SSA_NumReactions];
+	double *logChosenPropensity = NULL;
+	double logChosenReactionIndex [MAX_HISTORY];
 	/* set level */
 	level = INFO;
 
 #else
 
 	/* memory allocation of variables */
-	double *log_rand_one = NULL;
-	double *log_rand_two = NULL;
-	double *log_t_curr = NULL;
-	double *log_t_next = NULL;
-	double *log_current_states = NULL;
-	double *log_propensities =NULL;
-	double *log_choosen_propensity = NULL;
-	double *log_reaction_index = NULL;
+	double *logRandOne = NULL;
+	double *logRandTwo = NULL;
+	double *logTCurr = NULL;
+	double *logTNext = NULL;
+	double *logCurrentStates = NULL;
+	double *logPropensities = NULL;
+	double *logChosenPropensity = NULL;
+	double *logChosenReactionIndex = NULL;
 
 	/* set level */
 	level = OFF;
+	/* As level is off disable the logging */
 
 #endif
 
@@ -328,12 +329,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		if (retVal == -1)
 		{
 #ifdef LOGGING
-			openOutputStream(panic_file_name, panic_fstream);
-			writeLastNSteps(FILE_OUTPUT,panic_fstream, historyCounts, *maxHistory,level, logging_flag_of_var, logRandOne,
-					logRandTwo, logTCurr,logTNext,
-					logCurrentStates,
-					logPropensities,
-					logChosenPropensity, logChosenReactionIndex);
+			if(level < OFF)
+			{
+
+				openOutputStream(panic_file_name, panic_fstream);
+				writeLastNSteps(FILE_OUTPUT,panic_fstream, historyCounts, *maxHistory,level, logging_flag_of_var, logRandOne,
+						logRandTwo, logTCurr,logTNext,
+						logCurrentStates,
+						logPropensities,
+						logChosenPropensity, logChosenReactionIndex);
+			}
 
 #endif
 			mexErrMsgIdAndTxt("SSA:InvalidPropensity",
@@ -346,12 +351,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		{
 #ifdef LOGGING
 
-			openOutputStream(panic_file_name, panic_fstream);
-			writeLastNSteps(FILE_OUTPUT,panic_fstream, historyCounts, *maxHistory,level, logging_flag_of_var, logRandOne,
-					logRandTwo, logTCurr,logTNext,
-					logCurrentStates,
-					logPropensities,
-					logChosenPropensity, logChosenReactionIndex);
+			if(level < OFF)
+			{
+
+				openOutputStream(panic_file_name, panic_fstream);
+				writeLastNSteps(FILE_OUTPUT,panic_fstream, historyCounts, *maxHistory,level, logging_flag_of_var, logRandOne,
+						logRandTwo, logTCurr,logTNext,
+						logCurrentStates,
+						logPropensities,
+						logChosenPropensity, logChosenReactionIndex);
+			}
 
 #endif
 			mexErrMsgIdAndTxt("SSA:InvalidTcurr",
