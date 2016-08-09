@@ -229,10 +229,8 @@ void writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
 	int temp = maxHistory;
 	std::cout << "current step : " << i << std::endl;
 	for (int k = i; k >= 0; k--)
-	{/*TODO: Bug - Change this as this will crash for DEBUG/INFO level as we are trying
-	 to access indices on null pointers ex: log_rand_one/log_rand_two
+	{
 
-	 can be null for DEBUG case */
 #ifdef LEVEL_ALL
 		writeOneStep (destination, fstream, temp--, level, logging_flag_of_var,
 				log_rand_one[k], log_rand_two[k], log_t_curr[k], log_t_next[k],
