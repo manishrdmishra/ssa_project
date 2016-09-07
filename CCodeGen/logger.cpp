@@ -9,6 +9,12 @@ char NAME_OF_VAR[][MAX_VAR_LEN] =
 std::string COLON(": ");
 
 /****************************************************************
+ * input : level ( logging level )
+ * input : log_level_of_vars (An array which contains the logging 
+ *         level of state variable which is fixed ) 
+ *
+ * output : returns true if this variable should be logged else false
+ *
  * This function returns true if the given variable should be
  *logged according to the set severity level.
  ****************************************************************/
@@ -23,8 +29,16 @@ bool shouldBeLogged(LOGLEVEL level, int *log_level_vars, VAR var)
 }
 
 /****************************************************************
+ *
+ * input : level ( logging level )
+ * input : log_level_of_vars (An array which contains the logging 
+ *         level of state variable which is fixed ) 
+ * input : logging_flag_of_var ( provides information about the logging level
+ *         for each state variable )
+ * output : void 
+ *
  *Assigns the logging flag to each variable according to
- *required log level
+ *required log level. 
  ****************************************************************/
 void initializeLoggingFlags(LOGLEVEL level, int* log_level_of_vars,
 		bool* logging_flag_of_var)
@@ -65,12 +79,40 @@ void initializeLoggingFlags(LOGLEVEL level, int* log_level_of_vars,
 }
 
 /*******************************************************
+ *
+ * input : current_step ( current counter )
+ * input : level ( logging level )
+ * input : logging_flag_of_var ( provides information about the logging level
+ *         for each state variable )
+ * input : log_rand_one ( An array which stores the maxHistory number of log_rand_one values)
+ * input : log_rand_two ( An array which stroes the maxHistory number of log_rand_two values)
+ * input : log_t_curr ( An array which stores the maxHistory number of t_curr values )
+ * input : log_t_next ( An array which stores the maxHistory number of t_next values )
+ * input : log_states (An 2-d array which stores the maxHistory number of state vecotor 
+ *         i.e.number of chemical molecules in each step )
+ * input : log_propensities ( An 2-d array which stores the maxHistory number of propesnsities
+ *         vector )
+ *  input : log_choosen_propensitie ( An array which stores the maxHistory number of choosen propesnsities )
+ *
+ * input : log_reaction_indices ( An array which store the maxHistory number of choose reaction indices )
+ *
+ * input : curr_rand_one (current value of log_rand_one )
+ * input : curr_rand_two ( current value of log_rand_two )
+ * input : curr_t_curr ( current value of t_curr )
+ * input : curr_t_next ( current value of t_next )
+ * input : curr_states ( current state vector )
+ * input : curr_propensities ( current propensity vector )
+ * input : curr_choosen_propensity ( current value of choosen propensity )
+ * input : curr_reaction_index ( current value of reaction index )
+ *
+ * output : void
+ *
  * This function is called after each reaction to update
  * the current state of the system. The number of variables
  * updated depends on severity level of logging
  *******************************************************/
 
-void update_logRotation(long long unsigned i, LOGLEVEL level,
+void update_logRotation(long long unsigned current_step, LOGLEVEL level,
 		bool* logging_flag_of_var, double *log_rand_one, double *log_rand_two,
 		double *log_t_curr, double* log_t_next,
 		double log_states[][SSA_NumStates],
@@ -83,48 +125,71 @@ void update_logRotation(long long unsigned i, LOGLEVEL level,
 
 	if (logging_flag_of_var[RAND_ONE] == true)
 	{
-		log_rand_one[i] = curr_rand_one;
+		log_rand_one[current_step] = curr_rand_one;
+		//std::cout<<"updating log_rand_one...\n"<<std::endl;
 	}
 	if (logging_flag_of_var[RAND_TWO] == true)
 	{
-		log_rand_two[i] = curr_rand_two;
+		log_rand_two[current_step] = curr_rand_two;
 	}
 	if (logging_flag_of_var[T_CURR] == true)
 	{
-		log_t_curr[i] = curr_t_curr;
+		log_t_curr[current_step] = curr_t_curr;
 	}
 	if (logging_flag_of_var[T_NEXT] == true)
 	{
-		log_t_next[i] = curr_t_next;
+		log_t_next[current_step] = curr_t_next;
+		//std::cout<<"updating t_curr...\n"<<std::endl;
 	}
 	if (logging_flag_of_var[STATES] == true)
 	{
 		for (int j = 0; j < SSA_NumStates; j++)
 		{
-			log_states[i][j] = curr_states[j];
+			log_states[current_step][j] = curr_states[j];
 		}
 	}
 	if (logging_flag_of_var[PROPENSITIES] == true)
 	{
 		for (int j = 0; j < SSA_NumReactions; j++)
 		{
-			log_propensities[i][j] = curr_propensities[j];
+			log_propensities[current_step][j] = curr_propensities[j];
 		}
 	}
 	if (logging_flag_of_var[CHOSEN_PROPENSITY] == true)
 	{
-		log_choosen_propensities[i] = curr_choosen_propensity;
+		log_choosen_propensities[current_step] = curr_choosen_propensity;
 	}
 	if (logging_flag_of_var[REACTION_INDEX] == true)
 	{
-		log_reaction_indices[i] = curr_reaction_index;
+		log_reaction_indices[current_step] = curr_reaction_index;
 	}
 
 }
 
 /****************************************************************
+ * input : destination ( where output will be written )
+ * input : fstream ( A file stream )
+ * input : current_step ( current counter )
+ * input : maxHistory ( max number of steps to be saved for history )
+ * input : level ( logging level )
+ * input : logging_flag_of_var ( provides information about the logging level
+ *         for each state variable )
+ * input : log_rand_one ( current value of log_rand_one )
+ * input : log_rand_two ( current value of log_rand_two )
+ * input : log_t_curr ( current value of t_curr  )
+ * input : log_t_next ( current value of t_next  )
+ * input : log_states (current value of state vecotor 
+ *         i.e.number of chemical molecules in each step )
+ * input : log_propensities ( current value of propesnsity
+ *         vector )
+ * input : log_choosen_propensitie ( current value of choosen propesnsity )
+ *
+ * input : log_reaction_indices (current value of choose reaction index )
+ *
+ * output : void
+ *
  * This function writes the current state of the system to
- * the require output.
+ * the required output.
  ****************************************************************/
 void writeOneStep(OUTPUT method, std::ofstream& fstream,
 		long long unsigned current_step, LOGLEVEL level,
@@ -210,10 +275,32 @@ void writeOneStep(OUTPUT method, std::ofstream& fstream,
 }
 
 /****************************************************************
- * This function writes the last n states of the system.
+ *
+ * input : destination ( where output will be written )
+ * input : fstream ( A file stream )
+ * input : current_step ( current counter )
+ * input : maxHistory ( max number of steps to be saved for history )
+ * input : level ( logging level )
+ * input : logging_flag_of_var ( provides information about the logging level
+ *         for each state variable )
+ * input : log_rand_one ( An array which stores the maxHistory number of log_rand_one values)
+ * input : log_rand_two ( An array which stroes the maxHistory number of log_rand_two values)
+ * input : log_t_curr ( An array which stores the maxHistory number of t_curr values )
+ * input : log_t_next ( An array which stores the maxHistory number of t_next values )
+ * input : log_states (An 2-d array which stores the maxHistory number of state vecotor 
+ *         i.e.number of chemical molecules in each step )
+ * input : log_propensities ( An 2-d array which stores the maxHistory number of propesnsities
+ *         vector )
+ *  input : log_choosen_propensitie ( An array which stores the maxHistory number of choosen propesnsities )
+ *
+ * input : log_reaction_indices ( An array which store the maxHistory number of choose reaction indices )
+ *
+ * output : void
+ *
+ * This function writes the last n states of the system to the given output.
  ****************************************************************/
 void writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
-		long long unsigned i, long long unsigned maxHistory, LOGLEVEL level,
+		long long unsigned current_step, long long unsigned maxHistory, LOGLEVEL level,
 		bool* logging_flag_of_var, double *log_rand_one, double *log_rand_two,
 		double *log_t_curr, double* log_t_next,
 		double log_states[][SSA_NumStates],
@@ -221,14 +308,11 @@ void writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
 		double* log_choosen_propensities, double *log_reaction_indices)
 {
 
-//	std::ofstream fstream;
-//	fstream.open(file_name.c_str(),
-//			std::ios_base::app | std::ios_base::ate | std::ios_base::out
-//					| std::ios_base::binary);
+
 	/* write from the current counter to the first one */
 	int temp = maxHistory;
-	std::cout << "current step : " << i << std::endl;
-	for (int k = i; k >= 0; k--)
+	std::cout << "current step : " << current_step << std::endl;
+	for (int k = current_step; k >= 0; k--)
 	{
 
 #ifdef LEVEL_ALL
@@ -250,7 +334,7 @@ void writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
 
 	}
 	/* write from the maxHistory to the (current_counter - 1) */
-	for (int k = maxHistory; k < i; k--)
+	for (int k = maxHistory; k < current_step; k--)
 	{
 #ifdef LEVEL_ALL
 		writeOneStep (destination, fstream, temp--, level, logging_flag_of_var,
@@ -273,6 +357,12 @@ void writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
 	fstream.close();
 }
 /****************************************************************
+ *
+ * input : file_name ( An String )
+ * input : fstream  ( A file stream )
+ *
+ * output : void 
+ *
  * This function open the output stream for writing to corresponding
  * given file.
  ****************************************************************/
@@ -288,6 +378,10 @@ void openOutputStream(std::string file_name, std::ofstream& fstream)
 }
 
 /****************************************************************
+ *
+ * input : fstream ( A file stream )
+ * output : void 
+ *
  * This function close the output stream.
  ****************************************************************/
 void closeOutputStream(std::ofstream& fstream)
@@ -298,3 +392,59 @@ void closeOutputStream(std::ofstream& fstream)
 	}
 
 }
+
+/**************************************************************************
+ * input : struct_arrary ( a  pointer to Matlab structure )
+ * input : index ( index of an element in structure )
+ * input : fieldName ( name of the element )
+ * input : classIdExpected ( expected class id of the element)
+ * output : pointer to the corresponding structure element
+ *
+ * This function takes the above input arguments checks the validity of
+ * the structure element and if everything is fine then returns a pointer.
+ **************************************************************************/
+mxArray* getFieldPointer(const mxArray *struct_array, int index,
+		const char* fieldName, mxClassID classIdExpected) {
+	mxArray *fieldPointer = NULL;
+	//mexPrintf("executing getFieldPointer..");
+	fieldPointer = mxGetField(struct_array, index, fieldName);
+	if (fieldPointer == NULL || mxIsEmpty(fieldPointer)) {
+		mexPrintf("Field %s is empty \n", fieldName);
+		mexWarnMsgIdAndTxt("SSA:programOptions:StructElementEmpty",
+				"The element in the structure is empty,default value will be assigned \n");
+
+		return NULL;
+	}
+	mexPrintf("The class of field :   %s is : %d\n", fieldName,
+			mxGetClassID(fieldPointer));
+	if (mxGetClassID(fieldPointer) != classIdExpected) {
+
+		mexErrMsgIdAndTxt("SSA:programOptions:inputNotStruct",
+				"Given class Id does not match with the expected class id");
+        mexPrintf("The expected class of field :   %s is : %d\n", fieldName,
+			classIdExpected);
+	}
+	return fieldPointer;
+}
+
+/**************************************************************************
+ *
+ *  This function allocates memory for storing debugging information
+ *  Memory is allocated on the basis of debugging level.
+ *
+ **************************************************************************/
+
+/*void ssaCalloc(double **debugStateVar, mwSize n)
+{
+	**debugStateVar = (double *) mxCalloc(n, sizeof(double));
+}
+
+
+void ssaCalloc(double ***debugStateVar, mwSize n , mwSize m )
+{
+
+   
+
+
+}
+ */

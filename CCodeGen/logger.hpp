@@ -1,6 +1,8 @@
 #ifndef LOG_HPP_
 #define LOG_HPP_
 
+#include "mex.h"
+#include "matrix.h"
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
@@ -13,7 +15,33 @@
 #define MAX_HISTORY 1000
 #define MAX_VAR_LEN 30
 
-/* Assigns an index to a variable */
+/****************************************************************
+ * MAX_FIELDS - The maximum number of fields in the structure
+ * send to the mexFunction as program_options.
+ *
+ * NUM_OF_FIELDS - This is the current number of fields present
+ * in the structure program_options.
+ *****************************************************************/
+
+#define MAX_FIELDS 20
+#define NUM_OF_FIELDS 4
+
+/* index for program_options structure elements */
+
+#define PANIC_FILE_INDEX 0
+#define PERIODIC_FILE_INDEX 1
+#define MAX_HISTORY_INDEX 2
+#define PERIOD_INDEX 3
+
+/*Default values for the debugging */
+
+#define DEFAULT_PANIC_FILE "panic_log.txt"
+#define DEFAULT_PERIODIC_FILE "periodic_log.txt"
+#define DEFAULT_MAX_HISTORY 100
+#define DEFAULT_PERIOD 100
+
+
+/* Assigns an index to variables */
 enum VAR
 {
 	RAND_ONE = 0,
@@ -75,6 +103,12 @@ void writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
 //		double log_reaction_indices);
 void openOutputStream(std::string file_name, std::ofstream& fstream);
 void closeOutputStream(std::ofstream& fstream);
+
+mxArray* getFieldPointer(const mxArray *struct_array, int index,
+		const char* fieldName, mxClassID classIdExpected);
+
+//void ssaCalloc(double **fieldPtr, mwSize n);
+//void ssaCalloc(double ***fieldPtr, mwSize n , mwSize m );
 
 #define CHECK_NOTNEG(x) if (x < 0) { mexPrintf("The propensity is : %lf",x);return -1;}
 #endif

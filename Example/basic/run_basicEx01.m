@@ -112,7 +112,7 @@ end
 
 
 Nssa = 1000;
-%Nssa = 10;
+%Nssa = 1;
 %% Matlab based SSA simulation
 v = @(X) theta.*[X(1);X(2);X(2);X(3);X(3);X(4);X(1)*X(4)];
 S = [-1 +1  0  0  0  0 -1;...
@@ -137,36 +137,12 @@ toc,
 tic,
 
 %% specify the compiler options
-cleanup = 'cleanup';  cleanup_value = 1; % values can be 0/1
-optimization = 'optimization';  optimization_value = 0;
-logging = 'logging'; logging_value = 1;
-logging_level = 'logging_level'; logging_level_value = 3;
+% To get details about these flags, please look at dr_compileModel.m file
 
-compiler_options = struct(cleanup,cleanup_value ,optimization , optimization_value ,logging,logging_value,logging_level , logging_level_value );
-
-
-
-
-%% specify the options for mex executable 
-
-% Filed 1 keeps the name of the file which save the states of the 
-% simulation at the time of panic.
-field1 = 'panic_file_name';  value1 = 'panic_log.txt';
-
-
-field2 = 'periodic_file_name';  value2 = 'periodic_log.txt';
-%field2 = 'periodic_file_name';  value2 = [];
-
-% Field 3 keeps the value of the max number of history which program will save
-% will save the state of the simulation. 
-field3 = 'max_history';  value3 = cast(100,'uint64');
-%field3 = 'max_history';  value3 = [];
-
-% Field 4 keeps the value of the period after which the program
-% will save the state of the simulation. 
-field4 = 'period';  value4 = cast(100,'uint64');
-
-program_options = struct(cleanup,value1,field2, value2,field3, value3, field4, value4);
+compiler_options.cleanup = 1;
+compiler_options.optimization = 1;
+compiler_options.logging = 1;
+compiler_options.logging_level = 2;
 
 dr_compileModel(system,'testAtefeh',compiler_options);
 
@@ -174,6 +150,17 @@ tic,
 
 % Drawing of steady state
 a  = find(cumsum(model.p0)>=rand,1,'first');
+
+
+%% specify the options for mex executable 
+
+% To get details about these flags, please look at dr_runSSAWithModel.m file
+
+program_options.panic_file_name = 'panic_log.txt';
+program_options.periodic_file_name = 'periodic_log.txt';
+%program_options.max_history = cast(100,'uint64');
+%program_options.period = cast(100,'uint64');
+
 x0 = system.index(a,:)';
 dr_X_SSA = dr_runSSAWithModel(t,x0,theta,program_options,'testAtefeh',Nssa); % This function returns the state vector X_SSA at the prespecified time
 % vector t.
