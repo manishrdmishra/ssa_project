@@ -315,12 +315,12 @@ void writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
 	for (int k = current_step; k >= 0; k--)
 	{
 
-#ifdef LEVEL_ALL
+//#ifdef LEVEL_ALL
 		writeOneStep (destination, fstream, temp--, level, logging_flag_of_var,
 				log_rand_one[k], log_rand_two[k], log_t_curr[k], log_t_next[k],
 				log_states[k], log_propensities[k], log_choosen_propensities[k],
 				log_reaction_indices[k]);
-#elif LEVEL_DEBUG
+/* #elif LEVEL_DEBUG
 		writeOneStep (destination, fstream, temp--, level, logging_flag_of_var,
 				NULL, NULL, log_t_curr[k], log_t_next[k],
 				log_states[k], log_propensities[k],NULL,
@@ -331,17 +331,17 @@ void writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
 				log_states[k], log_propensities[k],NULL,
 				log_reaction_indices[k]);
 #endif
-
+*/
 	}
 	/* write from the maxHistory to the (current_counter - 1) */
 	for (int k = maxHistory; k < current_step; k--)
 	{
-#ifdef LEVEL_ALL
+//#ifdef LEVEL_ALL
 		writeOneStep (destination, fstream, temp--, level, logging_flag_of_var,
 				log_rand_one[k], log_rand_two[k], log_t_curr[k], log_t_next[k],
 				log_states[k], log_propensities[k], log_choosen_propensities[k],
 				log_reaction_indices[k]);
-#elif LEVEL_DEBUG
+/*#elif LEVEL_DEBUG
 		writeOneStep (destination, fstream, temp--, level, logging_flag_of_var,
 				NULL, NULL, log_t_curr[k], log_t_next[k],
 				log_states[k], log_propensities[k],NULL,
@@ -352,7 +352,7 @@ void writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
 				log_states[k], log_propensities[k],NULL,
 				log_reaction_indices[k]);
 #endif
-
+*/
 	}
 	fstream.close();
 }

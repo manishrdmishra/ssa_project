@@ -376,7 +376,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         reactionIndex = 1;
         for (int i = 1; cumProps[i - 1] <= chosenProp; i++)
             reactionIndex = i + 1;
-        
+        /* Update xCurr */
+        updateState(xCurr, reactionIndex);
         //std::cout<<"updating logs...\n"<<std::endl;
         globalCounter = globalCounter + 1;
 #ifdef  LOGGING
