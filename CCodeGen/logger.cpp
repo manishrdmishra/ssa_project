@@ -310,13 +310,13 @@ void writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
 
 
 	/* write from the current counter to the first one */
-	int temp = maxHistory;
+	//int temp = maxHistory;
 	std::cout << "current step : " << current_step << std::endl;
 	for (int k = current_step; k >= 0; k--)
 	{
 
 //#ifdef LEVEL_ALL
-		writeOneStep (destination, fstream, temp--, level, logging_flag_of_var,
+		writeOneStep (destination, fstream, k , level, logging_flag_of_var,
 				log_rand_one[k], log_rand_two[k], log_t_curr[k], log_t_next[k],
 				log_states[k], log_propensities[k], log_choosen_propensities[k],
 				log_reaction_indices[k]);
@@ -334,10 +334,10 @@ void writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
 */
 	}
 	/* write from the maxHistory to the (current_counter - 1) */
-	for (int k = maxHistory; k < current_step; k--)
+	for (int k = maxHistory - 1; k < current_step; k--)
 	{
 //#ifdef LEVEL_ALL
-		writeOneStep (destination, fstream, temp--, level, logging_flag_of_var,
+		writeOneStep (destination, fstream, k , level, logging_flag_of_var,
 				log_rand_one[k], log_rand_two[k], log_t_curr[k], log_t_next[k],
 				log_states[k], log_propensities[k], log_choosen_propensities[k],
 				log_reaction_indices[k]);

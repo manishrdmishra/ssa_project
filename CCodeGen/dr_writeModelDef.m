@@ -49,7 +49,7 @@ function [] = dr_writeModelDef(System, ModelStringMapping)
     fprintf(fid,'{\n');
     for i = 1:numel(ModelCumPropStrings)
        fprintf(fid,['\t' ModelCumPropStrings{i} '\n']); 
-       fprintf(fid,'\tCHECK_NOTNEG(DRTB_CumProp[%d]);\n',i-1);
+       fprintf(fid,'\tCHECK_NOTNEG(%d, DRTB_CumProp[%d]);\n',i-1, i-1);
       
 
     end

@@ -110,5 +110,5 @@ mxArray* getFieldPointer(const mxArray *struct_array, int index,
 //void ssaCalloc(double **fieldPtr, mwSize n);
 //void ssaCalloc(double ***fieldPtr, mwSize n , mwSize m );
 
-#define CHECK_NOTNEG(x) if (x < 0) { mexPrintf("The propensity is : %lf",x);return -1;}
+#define CHECK_NOTNEG(reaction_id,propensity) if (propensity < 0) { mexPrintf("For reaction : %d the propensity is : %lf\n",reaction_id,propensity);return -1;}
 #endif

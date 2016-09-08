@@ -379,16 +379,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         /* Update xCurr */
         updateState(xCurr, reactionIndex);
         //std::cout<<"updating logs...\n"<<std::endl;
-        globalCounter = globalCounter + 1;
+        
 #ifdef  LOGGING
         /* this call store the parameters of simulation which can used to print
          * at later stage in case of any error
          */
-        historyCounts = historyCounts + 1;
-        if (historyCounts > *maxHistory)
-        {
-            historyCounts = 0;
-        }
+       
         
         std::cout<<"updating logs...\n"<<std::endl;
         update_logRotation(historyCounts,level, logging_flag_of_var, logRandOne,
@@ -401,7 +397,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
                 cumProps,
                 chosenProp ,reactionIndex);
         
-        
+        historyCounts = historyCounts + 1;
+        if (historyCounts > *maxHistory)
+        {
+            historyCounts = 0;
+        }
         std::cout<<"global count: "<<globalCounter<<"\n";
         
         if (globalCounter % *period == 0)
@@ -415,6 +415,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             
         }
 #endif
+        globalCounter = globalCounter + 1;
     }
 #ifdef LOGGING
     panic_fstream.close();
