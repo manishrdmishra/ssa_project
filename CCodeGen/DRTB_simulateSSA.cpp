@@ -172,7 +172,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     /* sanity check - maxHistroy should be less than MAX_HISTORY */
     if( *maxHistory > MAX_HISTORY )
     {
-        *maxHistory = maxHistory;
+        *maxHistory = MAX_HISTORY;
     }
 
     /* get the period value */

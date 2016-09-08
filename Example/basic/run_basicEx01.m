@@ -158,8 +158,8 @@ a  = find(cumsum(model.p0)>=rand,1,'first');
 
 program_options.panic_file_name = 'panic_log.txt';
 program_options.periodic_file_name = 'periodic_log.txt';
-%program_options.max_history = cast(100,'uint64');
-%program_options.period = cast(100,'uint64');
+program_options.max_history = cast(100,'uint64');
+program_options.period = cast(100,'uint64');
 
 x0 = system.index(a,:)';
 dr_X_SSA = dr_runSSAWithModel(t,x0,theta,program_options,'testAtefeh',Nssa); % This function returns the state vector X_SSA at the prespecified time
