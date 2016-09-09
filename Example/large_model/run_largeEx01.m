@@ -38,26 +38,40 @@
 % Timescale of model is days/timeScale; e.g. for timeScale=1, 
 %    t = linspace(0,50*timeScale,1000); % full 50 day simulation
     t = linspace(0,2*timeScale,1000); % short 1 day test simulation
-
-%% Finish system (cerena toolbox)    
+    
+    %% Finish system (cerena toolbox)
     System = completeSystem(System);
     System = completeSystemSSA(System);
-
-%% Compile executable
-    cleanup  = 0; % keep sourcefiles
+    
+    %% Compile executable
+    %% specify the compiler options
+    % To get details about these flags, please look at dr_compileModel.m file
+    
+    compiler_options.cleanup = 0;
+    compiler_options.optimization = 1;
+    compiler_options.logging = 1;
+    compiler_options.logging_level = 2;
     execName = 'largeExample01_basic';
-    dr_compileModel(System, execName, cleanup);
-%   copyfile(which(execName),[fileparts(which('run_largeEx01')) filesep 'bin' filesep]);
-%   delete([execName '.*']);
-
-
-%% Run simulation    
-%   modelName = 'largeExample01_optimized';
-tic
+    dr_compileModel(System, execName, compiler_options);
+    %   copyfile(which(execName),[fileparts(which('run_largeEx01')) filesep 'bin' filesep]);
+    %   delete([execName '.*']);
+    
+    %% specify the options for mex executable
+    
+    % To get details about these flags, please look at dr_runSSAWithModel.m file
+    
+    program_options.panic_file_name = 'panic_log.txt';
+    program_options.periodic_file_name = 'periodic_log.txt';
+    program_options.max_history = cast(100,'uint64');
+    program_options.period = cast(100,'uint64');
+    
+    %% Run simulation
+    %   modelName = 'largeExample01_optimized';
+    tic
     modelName = 'largeExample01_basic';
-    timecourse = dr_runSSAWithModel(t, x0, theta, modelName);
-     fprintf('C-based simulation time:');
-toc
+    timecourse = dr_runSSAWithModel(t, x0, theta, program_options, modelName,Nssa);
+    fprintf('C-based simulation time:');
+    toc
 
 
     
