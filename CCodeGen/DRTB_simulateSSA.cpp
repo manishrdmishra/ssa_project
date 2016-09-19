@@ -71,7 +71,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     
     char *panicFileName = NULL;
     char *periodicFileName = NULL;
-    long long unsigned *maxHistory = NULL;
+    long long unsigned *numHistory = NULL;
     long long unsigned *period = NULL;
     bool assignedDefault[NUM_OF_FIELDS] = { false };
     
@@ -152,27 +152,27 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     }
     
     /* get the max history value */
-    mxArray *max_history_pointer = getFieldPointer(struct_array, 0,
-            fnames[MAX_HISTORY_INDEX], classIDflags[2]);
+    mxArray *num_history_pointer = getFieldPointer(struct_array, 0,
+            fnames[NUM_HISTORY_INDEX], classIDflags[2]);
     
-    if (max_history_pointer != NULL) {
+    if (num_history_pointer != NULL) {
         
-        maxHistory = (long long unsigned*) mxGetData(max_history_pointer);
-        mexPrintf("max history value %llu \n", *maxHistory);
+        numHistory = (long long unsigned*) mxGetData(num_history_pointer);
+        mexPrintf("num history value %llu \n", *numHistory);
     }
     else
     {
-        maxHistory = (long long unsigned *) mxCalloc(1,
+        numHistory = (long long unsigned *) mxCalloc(1,
                 sizeof(long long unsigned));
-        *maxHistory = DEFAULT_MAX_HISTORY;
-        mexPrintf("default max history value %llu \n", *maxHistory);
-        assignedDefault[MAX_HISTORY_INDEX] = true;
+        *numHistory = DEFAULT_NUM_HISTORY;
+        mexPrintf("default max history value %llu \n", *numHistory);
+        assignedDefault[NUM_HISTORY_INDEX] = true;
     }
     
     /* sanity check - maxHistroy should be less than MAX_HISTORY */
-    if( *maxHistory > MAX_HISTORY )
+    if( *numHistory > MAX_HISTORY )
     {
-        *maxHistory = MAX_HISTORY;
+        *numHistory = MAX_HISTORY;
     }
 
     /* get the period value */
@@ -323,7 +323,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             
             
             openOutputStream(panic_file_name, panic_fstream);
-            writeLastNSteps(FILE_OUTPUT,panic_fstream, historyCounts, *maxHistory,level, logging_flag_of_var, logRandOne,
+            writeLastNSteps(FILE_OUTPUT,panic_fstream, historyCounts, *numHistory,level, logging_flag_of_var, logRandOne,
                     logRandTwo, logTCurr,logTNext,
                     logCurrentStates,
                     logPropensities,
@@ -343,7 +343,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             
             
             openOutputStream(panic_file_name, panic_fstream);
-            writeLastNSteps(FILE_OUTPUT,panic_fstream, historyCounts, *maxHistory,level, logging_flag_of_var, logRandOne,
+            writeLastNSteps(FILE_OUTPUT,panic_fstream, historyCounts, *numHistory,level, logging_flag_of_var, logRandOne,
                     logRandTwo, logTCurr,logTNext,
                     logCurrentStates,
                     logPropensities,
@@ -386,7 +386,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
          */
        
         
-        std::cout<<"updating logs...\n"<<std::endl;
+        //std::cout<<"updating logs...\n"<<std::endl;
         update_logRotation(historyCounts,level, logging_flag_of_var, logRandOne,
                 logRandTwo, logTCurr,logTNext,
                 logCurrentStates,
@@ -398,11 +398,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
                 chosenProp ,reactionIndex);
         
         historyCounts = historyCounts + 1;
-        if (historyCounts > *maxHistory)
+        if (historyCounts > *numHistory)
         {
             historyCounts = 0;
         }
-        std::cout<<"global count: "<<globalCounter<<"\n";
+        //std::cout<<"global count: "<<globalCounter<<"\n";
         
         if (globalCounter % *period == 0)
         {
@@ -429,8 +429,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     if (assignedDefault[PERIODIC_FILE_INDEX] == true) {
         mxFree((void*) periodicFileName);
     }
-    if (assignedDefault[MAX_HISTORY_INDEX] == true) {
-        mxFree((void*) maxHistory);
+    if (assignedDefault[NUM_HISTORY_INDEX] == true) {
+        mxFree((void*) numHistory);
     }
     if (assignedDefault[PERIOD_INDEX] == true) {
         mxFree((void *) period);

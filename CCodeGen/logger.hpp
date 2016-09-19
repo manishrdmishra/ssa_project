@@ -11,8 +11,29 @@
 
 #include "DRTB_modeldefHeader_tmp.hpp"
 
+/****************************************************************
+ * In the simulation process there are variables which can be 
+ * logged periodically or when some error occur (like propensity 
+ *  has become negatvie ) during simulation. By logging these
+ * variables value in a file we can trace back the source of error
+ * or we can anaylyse how state of the system has changed over the 
+ * time. 
+ * We have identified some important variable which will be logged
+ * They are { tCurr, tNext, rand1, rand2, xCurr,cumProps,
+ * chosenProp, reactionIndex }. 
+ *****************************************************************/
+
+/* Number of variable which are identified for logging */
 #define NUM_VARS 8
+
+/* After some error this is the maximum number of steps
+ * which will be printed to panic file 
+ */
 #define MAX_HISTORY 1000
+
+/* This is the maximum number of character in the 
+ * name of a varible. 
+ */
 #define MAX_VAR_LEN 30
 
 /****************************************************************
@@ -26,18 +47,21 @@
 #define MAX_FIELDS 20
 #define NUM_OF_FIELDS 4
 
-/* index for program_options structure elements */
+/* index for program_options structure elements 
+ * ie. the first field is fixed for the name of panic file
+ * , second field is fixed for periodic file name and so on.
+ */
 
 #define PANIC_FILE_INDEX 0
 #define PERIODIC_FILE_INDEX 1
-#define MAX_HISTORY_INDEX 2
+#define NUM_HISTORY_INDEX 2
 #define PERIOD_INDEX 3
 
 /*Default values for the debugging */
 
 #define DEFAULT_PANIC_FILE "panic_log.txt"
 #define DEFAULT_PERIODIC_FILE "periodic_log.txt"
-#define DEFAULT_MAX_HISTORY 100
+#define DEFAULT_NUM_HISTORY 100
 #define DEFAULT_PERIOD 100
 
 

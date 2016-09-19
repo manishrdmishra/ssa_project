@@ -10,7 +10,7 @@
 %           0.6,0.6,0.6;  ...
 %           0.9,0.9,0.9];
 % col_zc = [0.0,0.0,0.7];
-
+clear
 % Parameter vector
 theta1 = [1.00;1.00;10;1;4;1;0.015];
 theta2 = [0.2;0.2;10;1;4;1;0.015];
@@ -19,9 +19,9 @@ theta2 = [0.2;0.2;10;1;4;1;0.015];
 theta = theta2;
 
 % Initial condition
-xi = 0.3;
-lambdaRoff = 4;
-lambdaRon  = 4;
+xi = 4;
+lambdaRoff = 10;
+lambdaRon  = 10;
 lambdaPoff = 10;
 lambdaPon  = 10;
 
@@ -33,6 +33,10 @@ t = [linspace(0,20,100)];
 syms DNA_off DNA_on mRNA Protein;
 syms tau_on tau_off k_m gamma_m k_p gamma_p tau_on_p;
 syms time
+
+% In new CERENA system Volume is defined as 
+% symbolic variable. 
+syms Omega % volume
 
 % Define state vector:
 system.time = time;
@@ -52,7 +56,8 @@ system.parameter.name     = {'\\tau_{on}';'\\tau_{off}';'k_m';'\\gamma_m';'k_p';
 % (R1)
 system.reaction(1).educt      = DNA_off;
 system.reaction(1).product    = DNA_on;
-system.reaction(1).propensity = tau_on*DNA_off;
+%system.reaction(1).propensity = tau_on*DNA_off;
+system.reaction(1).propensity = tau_on;
 system.reaction(1).parameter  = tau_on;
 % (R2)
 system.reaction(2).educt      = DNA_on;
@@ -86,11 +91,11 @@ system.reaction(7).propensity = tau_on_p*Protein*DNA_off;
 system.reaction(7).parameter  = tau_on_p;
 
 % Compartments
-system.compartments = 'default';
-system.volumes(1)   = 1;
+system.compartments = {'default'};
+system.volumes = Omega;
 for i = 1:length(system.state.variable)
     system.state.compartment{i} = 'default';
-    system.state.volume(i)      = system.volumes(1);
+    system.state.volume(i)      = system.volumes;
 end
 
 %% SIMULATION OF FSP
