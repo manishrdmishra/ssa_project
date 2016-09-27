@@ -74,10 +74,11 @@ function [] = dr_writeModelDef(System, ModelStringMapping)
             ProductStr = dr_parseSymToString(System.reaction(i).product(i2),ModelStringMapping);
             fprintf(fid,[ProductStr ' = ' ProductStr ' + 1; ']);
         end
-       
+        fprintf(fid,'break;\n');
+        
     end
     fprintf(fid,'     }\n');
-     fprintf(fid,'\treturn 0;\n');
+    fprintf(fid,'\treturn 0;\n');
     fprintf(fid,'}\n');
     
     fclose(fid);
