@@ -311,7 +311,7 @@ void writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
 
 	/* write from the current counter to the first one */
 	//int temp = maxHistory;
-	std::cout << "current step : " << current_step << std::endl;
+	//std::cout << "current step : " << current_step << std::endl;
 	for (int k = current_step; k >= 0; k--)
 	{
 
@@ -409,20 +409,20 @@ mxArray* getFieldPointer(const mxArray *struct_array, int index,
 	//mexPrintf("executing getFieldPointer..");
 	fieldPointer = mxGetField(struct_array, index, fieldName);
 	if (fieldPointer == NULL || mxIsEmpty(fieldPointer)) {
-		mexPrintf("Field %s is empty \n", fieldName);
+		//mexPrintf("Field %s is empty \n", fieldName);
 		mexWarnMsgIdAndTxt("SSA:programOptions:StructElementEmpty",
 				"The element in the structure is empty,default value will be assigned \n");
 
 		return NULL;
 	}
-	mexPrintf("The class of field :   %s is : %d\n", fieldName,
-			mxGetClassID(fieldPointer));
+//	mexPrintf("The class of field :   %s is : %d\n", fieldName,
+//			mxGetClassID(fieldPointer));
 	if (mxGetClassID(fieldPointer) != classIdExpected) {
 
 		mexErrMsgIdAndTxt("SSA:programOptions:inputNotStruct",
 				"Given class Id does not match with the expected class id");
-        mexPrintf("The expected class of field :   %s is : %d\n", fieldName,
-			classIdExpected);
+//        mexPrintf("The expected class of field :   %s is : %d\n", fieldName,
+//			classIdExpected);
 	}
 	return fieldPointer;
 }
