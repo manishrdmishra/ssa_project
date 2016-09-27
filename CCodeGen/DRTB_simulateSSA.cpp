@@ -1,9 +1,7 @@
 #include "mex.h"
 #include "matrix.h"
 #include "DRTB_modeldefHeader_tmp.hpp"
-#ifdef LOGGING
 #include "logger_tmp.hpp"
-#endif
 #include <cmath>
 #include <algorithm>
 #include <omp.h>
