@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <fstream>
 #include <cstring>
+#include <limits>
 
 // Input:   xCurr (current state vector)
 // Input:   tCurr (current time)
@@ -357,7 +358,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 //			cumulativePropensity += cumProps[i];
 //		}
 		double temp = 1 / cumProps[SSA_NumReactions - 1] * log(1 / rand1);
-		if (temp <= 0)
+		if (temp >=  std::numeric_limits<double>::max())
 		{
 #ifdef LOGGING
 
@@ -370,7 +371,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 #endif
 			mexErrMsgIdAndTxt("SSA:InvalidTcurr",
-					"Value of tCurr can not be negative");
+					"Value of tCurr can not be inf");
 		}
 		tCurr = tCurr + temp;
 
@@ -430,8 +431,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		{
 			historyCounts = 0;
 		}
-		//std::cout<<"global count: "<<globalCounter<<"\n";
-
+	
 		/* write the current state of the system to log file */
 		if (globalCounter % *period == 0)
 		{
@@ -445,6 +445,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		}
 #endif
 		globalCounter = globalCounter + 1;
+        mexPrintf("global counter : %llu\n", globalCounter);
+
 	}
 #ifdef LOGGING
 	panic_fstream.close();
