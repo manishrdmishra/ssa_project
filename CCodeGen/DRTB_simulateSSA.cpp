@@ -2,6 +2,7 @@
 #include "matrix.h"
 #include "DRTB_modeldefHeader_tmp.hpp"
 #include "logger_tmp.hpp"
+#include "gillespie_tmp.hpp"
 #include <cmath>
 #include <algorithm>
 #include <omp.h>
@@ -74,7 +75,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	long long unsigned *numHistory = NULL;
 	long long unsigned *period = NULL;
 	bool assignedDefault[NUM_OF_FIELDS] =
-	{ false };
+			{ false };
 
 	/* pointer to field names */
 	const char **fnames;
@@ -87,13 +88,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	/* Preassign the class of each element present in the structure */
 	mxClassID classIDflags[] =
-	{ mxCHAR_CLASS, mxCHAR_CLASS, mxUINT64_CLASS, mxUINT64_CLASS };
+			{ mxCHAR_CLASS, mxCHAR_CLASS, mxUINT64_CLASS, mxUINT64_CLASS };
 
 	/* check if the input in struct_array is a structure */
 	if (mxIsStruct(struct_array) == false)
 	{
 		mexErrMsgIdAndTxt("SSA:programOptions:inputNotStruct",
-				"Input must be a structure.");
+						  "Input must be a structure.");
 	}
 
 	/* get number of elements in structure */
@@ -102,7 +103,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	if (numFields != NUM_OF_FIELDS)
 	{
 		mexWarnMsgIdAndTxt("SSA:programOptions:NumOfStructElementMismatch",
-				"The expected number of elements in structure does not match with the provided\n");
+						   "The expected number of elements in structure does not match with the provided\n");
 		//mexPrintf("Expected vs Provided : %d  %d\n", NUM_OF_FIELDS, numFields);
 	}
 
@@ -120,7 +121,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	/* get the panic file name*/
 	mxArray *panic_file = getFieldPointer(struct_array, 0,
-			fnames[PANIC_FILE_INDEX], classIDflags[0]);
+										  fnames[PANIC_FILE_INDEX], classIDflags[0]);
 	if (panic_file != NULL)
 	{
 
@@ -139,7 +140,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	/* get the periodic file name*/
 	mxArray *periodic_file = getFieldPointer(struct_array, 0,
-			fnames[PERIODIC_FILE_INDEX], classIDflags[1]);
+											 fnames[PERIODIC_FILE_INDEX], classIDflags[1]);
 	if (periodic_file != NULL)
 	{
 
@@ -159,18 +160,18 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	/* get the max history value */
 	mxArray *num_history_pointer = getFieldPointer(struct_array, 0,
-			fnames[NUM_HISTORY_INDEX], classIDflags[2]);
+												   fnames[NUM_HISTORY_INDEX], classIDflags[2]);
 
 	if (num_history_pointer != NULL)
 	{
 
 		numHistory = (long long unsigned*) mxGetData(num_history_pointer);
-		//mexPrintf("num history value %llu \n", *numHistory);
+		mexPrintf("num history value %llu \n", *numHistory);
 	}
 	else
 	{
 		numHistory = (long long unsigned *) mxCalloc(1,
-				sizeof(long long unsigned));
+													 sizeof(long long unsigned));
 		*numHistory = DEFAULT_NUM_HISTORY;
 		//mexPrintf("default max history value %llu \n", *numHistory);
 		assignedDefault[NUM_HISTORY_INDEX] = true;
@@ -184,13 +185,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	/* get the period value */
 	mxArray *period_pointer = getFieldPointer(struct_array, 0,
-			fnames[PERIOD_INDEX], classIDflags[3]);
+											  fnames[PERIOD_INDEX], classIDflags[3]);
 
 	if (period_pointer != NULL)
 	{
 
 		period = (long long unsigned *) mxGetPr(period_pointer);
-		//mexPrintf("period value %llu \n", *period);
+		mexPrintf("period value %llu \n", *period);
 	}
 	else
 	{
@@ -224,8 +225,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	timecourse = mxGetPr(plhs[0]);
 
 #ifdef LOGGING
+	LoggingParameters logging_parameters; // = new LoggingParameters();
+ logging_parameters.panic_file_name_ = std::string(panicFileName);
+ logging_parameters.periodic_file_name_ = std::string(periodicFileName);
+ logging_parameters.num_history_ = *numHistory;
+ logging_parameters.logging_period_= *period;
+ Logger logger(logging_parameters);
+ logger.initializeLoggingLevelOfVar();
 
-	//std::cout<<"logging enabled..\n"<<std::endl;
+	std::cout<<"logging enabled..\n"<<std::endl;
 
 	/* definition of log levels, lower the value of
 	 * logging level means higher level of verbosity.
@@ -235,7 +243,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	 * ALL - {RAND_ONE , RAND_TWO } + DEBUG
 	 */
 
-	int log_level_of_var[NUM_VARS];
+	//int log_level_of_var[NUM_VARS];
 
 	/* set the logging level for each variable
 	 * For example,for RAND_ONE the level is set to 0
@@ -245,7 +253,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	 * so a varible is logged if its set flag value is higher than
 	 * the value of logging_flag.
 	 */
-	log_level_of_var[RAND_ONE] = 0;
+	/*log_level_of_var[RAND_ONE] = 0;
 	log_level_of_var[RAND_TWO] = 0;
 	log_level_of_var[T_CURR] = 1;
 	log_level_of_var[T_NEXT] = 1;
@@ -253,20 +261,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	log_level_of_var[PROPENSITIES] = 2;
 	log_level_of_var[CHOSEN_PROPENSITY] = 1;
 	log_level_of_var[REACTION_INDEX] = 2;
-
+*/
 	/* Panic log file name */
 	std::string panic_file_name(panicFileName);
 	std::ofstream panic_fstream;
 
 	/* periodic log file */
-	std::string periodic_file_name(periodicFileName);
-	std::ofstream periodic_fstream;
-	openOutputStream(periodic_file_name, periodic_fstream);
+	//std::string periodic_file_name(periodicFileName);
+	//std::ofstream periodic_fstream;
+	//openOutputStream(periodic_file_name, periodic_fstream);
 
-	LOGLEVEL level;
+	//LOGLEVEL level;
 
 	/* definition of variables to store the states */
-	double logRandOne[MAX_HISTORY];
+	/*double logRandOne[MAX_HISTORY];
 	double logRandTwo[MAX_HISTORY];
 	double logTCurr[MAX_HISTORY];
 	double logTNext[MAX_HISTORY];
@@ -274,22 +282,27 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	double logPropensities [MAX_HISTORY][SSA_NumReactions];
 	double logChosenPropensity [MAX_HISTORY];
 	double logChosenReactionIndex [MAX_HISTORY];
+	*/
 	/* set level */
 #ifdef LEVEL_ALL
 
-	level = ALL;
+	//level = ALL;
+	logger.setLogLevel(ALL);
 
 #elif LEVEL_DEBUG
 
-	level = DEBUG;
+	//level = DEBUG;
+	logger.setLogLevel(DEBUG);
 
 #elif LEVEL_INFO
 
-	level = INFO;
+	//level = INFO;
+	logger.setLogLevel(INFO);
 
 #else
 
-	level = OFF;
+	//level = OFF;
+	logger.setLogLevel(OFF);
 	/* As level is off disable the logging flag */
 	//std::cout<<"disabling logging as logging flag is set to OFF\n"<<std::endl;
 #undef LOGGING
@@ -297,12 +310,30 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 #endif
 
 	/* initialize the logging flag for variables */
-	bool logging_flag_of_var[NUM_VARS];
-	initializeLoggingFlags(level,log_level_of_var,logging_flag_of_var);
+	// bool logging_flag_of_var[NUM_VARS];
+//	initializeLoggingFlags(level,log_level_of_var,logging_flag_of_var);
+	logger.initializeLoggingFlags();
 
 #endif
 
-	/* Write initial conditions to output */
+	// create simulation input structure
+	SimulationParametersIn simulation_parameters_in;
+    simulation_parameters_in.states_ = xCurr;
+	simulation_parameters_in.timepoints_count_ = numTimepts;
+	simulation_parameters_in.timepoints_ = timepoints;
+	simulation_parameters_in.parameters_ = parameters;
+
+	// create simulation output structure
+
+	SimulationParametersOut simulation_parameters_out;
+	simulation_parameters_out.timecourse_ = timecourse;
+
+
+	GillespieBasic* gillespie =  new GillespieBasic(logger);
+    std::cout<<"starting simulation..\n"<<std::endl;
+	gillespie->runSimulation(simulation_parameters_in,simulation_parameters_out);
+
+	/* Write initial conditions to output *//*
 	iTime = 0;
 	for (int i = 0; i < SSA_NumStates; i++)
 	{
@@ -311,7 +342,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	iTime++;
 	tNext = timepoints[iTime];
 
-	/* Start iteration*/
+	*//* Start iteration*//*
 	tCurr = timepoints[0];
 	tNext = timepoints[iTime];
 	long long unsigned globalCounter = 0;
@@ -319,13 +350,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	while (tCurr < timepoints[numTimepts - 1])
 	{
-		/*mexPrintf("tCurr: %lf, timepoints : %lf\n", tCurr,
-				timepoints[numTimepts - 1]);*/
+		*//*mexPrintf("tCurr: %lf, timepoints : %lf\n", tCurr,
+				timepoints[numTimepts - 1]);*//*
 		// Debugging info - massive performance decrease
 		double rand1 = std::max(1.0, (double) rand()) / (double) RAND_MAX;
 		double rand2 = std::max(1.0, (double) rand()) / (double) RAND_MAX;
 
-		/* Calculate cumulative propensities in one step*/
+		*//* Calculate cumulative propensities in one step*//*
 		int retVal = calculateCumProps(cumProps, xCurr, parameters);
 		//retVal = -1;
 		if (retVal == -1)
@@ -341,16 +372,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 #endif
 			mexErrMsgIdAndTxt("SSA:InvalidPropensity",
-					"Propensity can not be negative");
+							  "Propensity can not be negative");
 		}
 
-		/* Sample reaction time*/
-		/*TODO : temp = ( \sum_{k=1}^M cumPropos[k] ) * log ( 1/ rand1);
+
+		*//* Sample reaction time*//*
+		*//*TODO : temp = ( \sum_{k=1}^M cumPropos[k] ) * log ( 1/ rand1);
 		 * however in current implementation only the propensity of last
 		 * reaction is taken, which is not according to Gillespie algorithm.
 		 * a0 = ( \sum_{k=1}^M cumPropos[k] )
-		 */
-		/* Calculate the sum of all propensities */
+		 *//*
+		*//* Calculate the sum of all propensities *//*
 //		double cumulativePropensity = 0;
 //
 //		for (int i = 0; i < SSA_NumReactions; i++)
@@ -371,11 +403,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 #endif
 			mexErrMsgIdAndTxt("SSA:InvalidTcurr",
-					"Value of tCurr can not be inf");
+							  "Value of tCurr can not be inf");
 		}
 		tCurr = tCurr + temp;
 
-		/* If time > time out, write next datapoint to output*/
+		*//* If time > time out, write next datapoint to output*//*
 		while (tCurr >= tNext && iTime < numTimepts)
 		{
 
@@ -392,10 +424,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			tNext = timepoints[iTime];
 		}
 
-		/* Sample reaction index*/
-		/* TODO : here also instead of cumProps[SSA_NumReactions - 1]
+		*//* Sample reaction index*//*
+		*//* TODO : here also instead of cumProps[SSA_NumReactions - 1]
 		 * we should use a0 according to Gillespie algorithm
-		 */
+		 *//*
 
 		//double chosenProp = rand2 * cumulativePropensity;
 		double chosenProp = rand2 * cumProps[SSA_NumReactions - 1];
@@ -406,14 +438,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			//tempCumulativePropensity += cumProps[i - 1];
 			reactionIndex = i + 1;
 		}
-		/* Update xCurr */
+		*//* Update xCurr *//*
 		updateState(xCurr, reactionIndex);
 		//std::cout<<"updating logs...\n"<<std::endl;
 
 #ifdef  LOGGING
-		/* this call store the parameters of simulation which can used to print
+		*//* this call store the parameters of simulation which can used to print
 		 * at later stage in case of any error
-		 */
+		 *//*
 
 		//std::cout<<"updating logs...\n"<<std::endl;
 		update_logRotation(historyCounts,level, logging_flag_of_var, logRandOne,
@@ -432,7 +464,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			historyCounts = 0;
 		}
 	
-		/* write the current state of the system to log file */
+		*//* write the current state of the system to log file *//*
 		if (globalCounter % *period == 0)
 		{
 
@@ -445,7 +477,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		}
 #endif
 		globalCounter = globalCounter + 1;
-        mexPrintf("global counter : %llu\n", globalCounter);
+		mexPrintf("global counter : %llu\n", globalCounter);
 
 	}
 #ifdef LOGGING
@@ -453,7 +485,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	periodic_fstream.close();
 #endif
 
-	/*free the allocated memory */
+	*//*free the allocated memory *//*
 	if (assignedDefault[PANIC_FILE_INDEX] == true)
 	{
 		mxFree((void*) panicFileName);
@@ -469,6 +501,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	if (assignedDefault[PERIOD_INDEX] == true)
 	{
 		mxFree((void *) period);
-	}
+	}*/
 }
 

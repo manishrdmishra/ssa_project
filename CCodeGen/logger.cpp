@@ -1,5 +1,4 @@
 #include "logger_tmp.hpp"
-#include "logger.hpp"
 
 /* assigns name to variables which will be used during logging */
 
@@ -22,7 +21,7 @@ std::string COLON(": ");
 
 bool Logger::shouldBeLogged(VAR var)
 {
-	if (log_level_of_var_[var] >= level)
+	if (log_level_of_var_[var] >= level_)
 	{
 		return true;
 	}
@@ -120,43 +119,43 @@ void Logger::update_logRotation(long long unsigned current_step,
 
 	if (logging_flag_of_var_[RAND_ONE] == true)
 	{
-		log_rand_one[current_step] = curr_rand_one;
+		log_rand_one_[current_step] = curr_rand_one;
 		//std::cout<<"updating log_rand_one...\n"<<std::endl;
 	}
 	if (logging_flag_of_var_[RAND_TWO] == true)
 	{
-		log_rand_two[current_step] = curr_rand_two;
+		log_rand_two_[current_step] = curr_rand_two;
 	}
 	if (logging_flag_of_var_[T_CURR] == true)
 	{
-		log_t_curr[current_step] = curr_t_curr;
+		log_time_curr_[current_step] = curr_t_curr;
 	}
 	if (logging_flag_of_var_[T_NEXT] == true)
 	{
-		log_t_next[current_step] = curr_t_next;
+		log_time_next_[current_step] = curr_t_next;
 		//std::cout<<"updating t_curr...\n"<<std::endl;
 	}
 	if (logging_flag_of_var_[STATES] == true)
 	{
 		for (int j = 0; j < SSA_NumStates; j++)
 		{
-			log_states[current_step][j] = curr_states[j];
+			log_states_[current_step][j] = curr_states[j];
 		}
 	}
 	if (logging_flag_of_var_[PROPENSITIES] == true)
 	{
 		for (int j = 0; j < SSA_NumReactions; j++)
 		{
-			log_propensities[current_step][j] = curr_propensities[j];
+			log_propensities_[current_step][j] = curr_propensities[j];
 		}
 	}
 	if (logging_flag_of_var_[CHOSEN_PROPENSITY] == true)
 	{
-		log_choosen_propensities[current_step] = curr_choosen_propensity;
+		log_chosen_propensity_[current_step] = curr_choosen_propensity;
 	}
 	if (logging_flag_of_var_[REACTION_INDEX] == true)
 	{
-		log_reaction_indices[current_step] = curr_reaction_index;
+		log_chosen_reaction_index_[current_step] = curr_reaction_index;
 	}
 
 }

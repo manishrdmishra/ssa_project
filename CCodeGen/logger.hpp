@@ -1,5 +1,5 @@
-#ifndef LOG_HPP_
-#define LOG_HPP_
+#ifndef LOGGER_HPP_
+#define LOGGER_HPP_
 
 #include "mex.h"
 #include "matrix.h"
@@ -99,12 +99,29 @@ struct LoggingParameters
 class Logger {
 
 public:
-    Logger(LoggingParameters& logging_parameters);
-    void setLogLevel(LOGLEVEL);
+    Logger(LoggingParameters& logging_parameters)
+    :logging_parameters_(logging_parameters)
+    {
+    }
+    inline void setLogLevel(LOGLEVEL log_level)
+    {
+        level_ = log_level;
+    }
     bool shouldBeLogged(VAR var);
 
     void initializeLoggingFlags();
+ inline void initializeLoggingLevelOfVar()
+    {
+        log_level_of_var_[RAND_ONE] = 0;
+   log_level_of_var_[RAND_TWO] = 0;
+   log_level_of_var_[T_CURR] = 1;
+   log_level_of_var_[T_NEXT] = 1;
+   log_level_of_var_[STATES] = 2;
+   log_level_of_var_[PROPENSITIES] = 2;
+   log_level_of_var_[CHOSEN_PROPENSITY] = 1;
+   log_level_of_var_[REACTION_INDEX] = 2;
 
+    }
     void update_logRotation(long long unsigned current_step,
                             double current_rand_one, double current_rand_two, double current_t_current,
                             double current_t_next, double current_states[], double current_propensities[],
@@ -133,6 +150,8 @@ public:
     //void setNumOfHistory(const )
 
 private:
+
+
     LoggingParameters& logging_parameters_;
 
     //std::cout<<"logging enabled..\n"<<std::endl;
@@ -151,7 +170,8 @@ private:
      * so a varible is logged if its set flag value is higher than
      * the value of logging_flag.
      */
-    int log_level_of_var_[ NUM_VARS ] =
+    int log_level_of_var_[ NUM_VARS ];
+     /*=
             {
                     0  , // RAND_ONE
                     0  , // RAND_ONE
@@ -162,7 +182,7 @@ private:
                     1  , // CHOSEN_PROPENSITY
                     2  , // REACTION_INDEX
             };
-
+*/
 
     /*log_level_of_var[RAND_ONE] = 0;
     log_level_of_var[RAND_TWO] = 0;
@@ -185,7 +205,8 @@ private:
     LOGLEVEL level_;
 
     /* initialize the logging flag for variables */
-    bool logging_flag_of_var_[NUM_VARS] = {false};
+    bool logging_flag_of_var_[NUM_VARS];
+    //= {false, false, false, false, false, false, false, false};
 
     /* definition of variables to store the states */
     double log_rand_one_[MAX_HISTORY];
@@ -196,6 +217,8 @@ private:
     double log_propensities_ [MAX_HISTORY][SSA_NumReactions];
     double log_chosen_propensity_ [MAX_HISTORY];
     double log_chosen_reaction_index_ [MAX_HISTORY];
+
+    long long unsigned history_counts_ ;
 };
 mxArray* getFieldPointer(const mxArray *struct_array, int index,
                          const char* fieldName, mxClassID classIdExpected);
