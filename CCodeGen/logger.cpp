@@ -111,11 +111,16 @@ void Logger::initializeLoggingFlags()
  * updated depends on severity level of logging
  *******************************************************/
 
-void Logger::update_logRotation(long long unsigned current_step,
-		double curr_rand_one, double curr_rand_two, double curr_t_curr,
+void Logger::update_logRotation(long long unsigned current_step, double curr_rand_one, double curr_rand_two, double curr_t_curr,
 		double curr_t_next, double curr_states[], double curr_propensities[],
 		double curr_choosen_propensity, double curr_reaction_index)
 {
+
+//	history_counts_ = history_counts_ + 1;
+//	if (history_counts_ > logging_parameters_.num_history_)
+//	{
+//		history_counts_ = 0;
+//	}
 
 	if (logging_flag_of_var_[RAND_ONE] == true)
 	{
@@ -354,7 +359,7 @@ void Logger::writeLastNSteps(OUTPUT destination, std::ofstream& fstream,
  * This function open the output stream for writing to corresponding
  * given file.
  ****************************************************************/
-void Logger::openOutputStream(std::string file_name, std::ofstream& fstream)
+void Logger::openFileStream(std::string file_name, std::ofstream& fstream)
 {
 
 	if (fstream.is_open() == false)
@@ -372,7 +377,7 @@ void Logger::openOutputStream(std::string file_name, std::ofstream& fstream)
  *
  * This function close the output stream.
  ****************************************************************/
-void Logger::closeOutputStream(std::ofstream& fstream)
+void Logger::closeFileStream(std::ofstream& fstream)
 {
 	if (fstream.is_open() == false)
 	{

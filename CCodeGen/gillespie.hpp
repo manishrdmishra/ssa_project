@@ -17,8 +17,8 @@ struct SimulationParametersIn
 
     double* states_ ;
     double* parameters_;
-    double* timepoints_;
-    int timepoints_count_;
+    double* time_points_;
+    int time_points_count_;
 };
 
 struct SimulationParametersOut
@@ -52,11 +52,11 @@ protected:
     {
         return ( std::max(1.0, ( double ) rand()) / (double) RAND_MAX );
     };
-    inline int calculateCumulativePropensity(double* cumulative_propensity, double* states, double* parameters)
+    int calculateCumulativePropensity(double* cumulative_propensity, double* states, double* parameters)
     {
         return ( calculateCumProps(cumulative_propensity,states, parameters));
     }
-    inline void updateSsaState(double* states, const int reaction_index)
+    void updateSsaState(double* states, const int reaction_index)
     {
         updateState( states, reaction_index);
     }
@@ -77,7 +77,6 @@ public:
     void runSimulation(SimulationParametersIn& simulation_parameters_in, SimulationParametersOut& simulation_parameters_out);
 private:
     Logger& logger_;
-    long long unsigned global_counter_ ;
 
 };
 

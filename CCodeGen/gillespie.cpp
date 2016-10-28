@@ -3,7 +3,6 @@
 //
 
 #include "gillespie_tmp.hpp"
-#include "gillespie.hpp"
 
 void Gillespie::initializeSimulation(SimulationParametersIn& simulation_parameters_in, SimulationParametersOut& simulation_parameters_out)
 {
@@ -17,18 +16,18 @@ void Gillespie::initializeSimulation(SimulationParametersIn& simulation_paramete
     }
 
     itime_++;
-    time_next_ = simulation_parameters_in.timepoints_[itime_];
+    time_next_ = simulation_parameters_in.time_points_[itime_];
 
     /* start iteration of simulation */
-    time_curr_ = simulation_parameters_in.timepoints_[0];
-    time_next_ = simulation_parameters_in.timepoints_[itime_];
+    time_curr_ = simulation_parameters_in.time_points_[0];
+    time_next_ = simulation_parameters_in.time_points_[itime_];
 
 }
 void Gillespie::writeStatesToOutputOnTimeOut(SimulationParametersIn& simulation_parameters_in, SimulationParametersOut& simulation_parameters_out)
 {
     // if time > time_out then write next data point to output
     int index = 0;
-    while ( time_curr_ >= time_next_ && itime_ < simulation_parameters_in.timepoints_count_)
+    while ( time_curr_ >= time_next_ && itime_ < simulation_parameters_in.time_points_count_)
     {
         index = itime_ * SSA_NumStates;
 
@@ -37,7 +36,7 @@ void Gillespie::writeStatesToOutputOnTimeOut(SimulationParametersIn& simulation_
             simulation_parameters_out.timecourse_[index + i ] = simulation_parameters_in.states_[i];
         }
         itime_++;
-        time_next_ = simulation_parameters_in.timepoints_[itime_];
+        time_next_ = simulation_parameters_in.time_points_[itime_];
 
     }
 }
@@ -60,43 +59,34 @@ void GillespieBasic::runSimulation(SimulationParametersIn& simulation_parameters
     initializeSimulation(simulation_parameters_in, simulation_parameters_out);
 
     // declaration of some local variables
+    long long unsigned history_counts = 0;
+    long long unsigned global_counter = 0;
     double chosen_propensity = 0;
     double rand_one = 0, rand_two = 0;
     int return_val = 0;
     double temp = 0;
 
-    while ( time_curr_ < simulation_parameters_in.timepoints_[simulation_parameters_in.timepoints_count_ - 1])
+    while ( time_curr_ < simulation_parameters_in.time_points_[simulation_parameters_in.time_points_count_ - 1])
     {
         //std::cout<<"looping\n";
         // generate two random numbers
         rand_one = generateRandomNumber();
         rand_two = generateRandomNumber();
+
         // calculate cumulative propensity
        // std::cout<<"calculating the propensity\n";
-
-//        std::cout<<"print states\n";
-//
-//        for( int i = 0 ; i<4 ; i ++)
-//        {
-//            std::cout <<simulation_parameters_in.states_[i]<<"\n";
-//        }
-
-   // std::cout<<"time points : "<<simulation_parameters_in.timepoints_count_<<std::endl;
-   // std::cout<<"parameters : "<<simulation_parameters_in.parameters_[0]<<std::endl;
-
-
         return_val = calculateCumulativePropensity(cumulative_propensity_,simulation_parameters_in.states_ ,simulation_parameters_in.parameters_);
-//        std::cout<<"print propensity\n";
-//
-//        for( int i = 0 ; i<7 ; i ++)
-//        {
-//            std::cout <<cumulative_propensity_[i]<<"\n";
-//        }
         if (return_val == -1 )
         {
             // if logging enabled log the last n steps in file
             mexErrMsgIdAndTxt("SSA:InvalidPropensity",
                               "Propensity can not be negative");
+#ifdef LOGGING
+
+            logger_.openPanicFileStream();
+			logger_.writeLastNSteps(FILE_OUTPUT,logger_.getPanicFileStream(), history_counts);
+
+#endif
         }
         // draw exponential random variable with parameter a0 = cumulative_propensity_[SSA_NumReactions - 1]
 
@@ -120,43 +110,44 @@ void GillespieBasic::runSimulation(SimulationParametersIn& simulation_parameters
         {
             reaction_index_ = i + 1;
         }
-        std::cout<<"chosen reaction index : "<<reaction_index_<<std::endl;
+        //std::cout<<"chosen reaction index : "<<reaction_index_<<std::endl;
 
         // update the  states according to reaction index
         updateSsaState(simulation_parameters_in.states_,reaction_index_);
 
 #ifdef  LOGGING
-        *//* this call store the parameters of simulation which can used to print
+        /* this call store the parameters of simulation which can used to print
 		 * at later stage in case of any error
-		 *//*
+		 */
 
 		//std::cout<<"updating logs...\n"<<std::endl;
-		logger_.update_logRotation(history_counts_,rand_one,
+		logger_.update_logRotation(history_counts,rand_one,
 				rand_two,time_curr_,time_next_,
 				simulation_parameters_in.states_,
 				cumulative_propensity_,
 				chosen_propensity ,reaction_index_);
 
-		history_counts_ = history_counts_ + 1;
-		if (historyCounts > *numHistory)
+		if (history_counts > logger_.getNumOfHistory())
 		{
-			historyCounts = 0;
+			history_counts = 0;
 		}
 
-		*//* write the current state of the system to log file *//*
-		if (globalCounter % *period == 0)
+		history_counts = history_counts + 1;
+
+		/* write the current state of the system to log file */
+		if (global_counter % logger_.getLoggingPeriod() == 0)
 		{
 
 			//mexPrintf("printing logs..");
-			writeOneStep(FILE_OUTPUT,periodic_fstream,globalCounter, level, logging_flag_of_var, rand1,
-					rand2, tCurr,tNext,
-					xCurr,cumProps,
-					chosenProp, reactionIndex);
+			logger_.writeOneStep(FILE_OUTPUT,logger_.getPeriodicFileStream(),global_counter, rand_one,
+					rand_two, time_curr_,time_next_,
+					simulation_parameters_in.states_,cumulative_propensity_,
+					chosen_propensity, reaction_index_);
 
 		}
 #endif
 
-        global_counter_ = global_counter_ + 1;
+        global_counter = global_counter + 1;
 
     }
 
