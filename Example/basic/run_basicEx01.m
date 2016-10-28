@@ -116,8 +116,8 @@ for ix = 1:size(system.index,1)
 end
 
 
-Nssa = 1000;
-%Nssa = 1;
+%Nssa = 1000;
+Nssa = 1;
 %% Matlab based SSA simulation
 % v = @(X) theta.*[X(1);X(2);X(2);X(3);X(3);X(4);X(1)*X(4)];
 % S = [-1 +1  0  0  0  0 -1;...
@@ -147,7 +147,7 @@ tic,
 compiler_options.cleanup = 1;
 compiler_options.optimization = 1;
 compiler_options.logging = 1;
-compiler_options.logging_level = 2;
+compiler_options.logging_level = 0;
 
 dr_compileModel(system,'testAtefeh',compiler_options);
 

@@ -2,6 +2,7 @@
 #include "matrix.h"
 #include "DRTB_modeldefHeader_tmp.hpp"
 #include "logger_tmp.hpp"
+#include "gillespie_tmp.hpp"
 #include <cmath>
 #include <algorithm>
 #include <omp.h>
@@ -18,22 +19,22 @@
 // Input:   tNext (next state report time)
 
 // Output:  tCurr  (time after last reaction)
-// Output:  XCurr  (state at tCurr)
+// Output:  states  (state at tCurr)
 // Output:  XSaved (state at last report time)
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 
 	/* Declare Inputs*/
-	double *xCurr;
+	double *states;
 	double *parameters;
-	double *timepoints;
-	int numTimepts;
+	double *time_points;
+	int time_points_count;
 
 	/* Load input values from prhs array */
 
 	/* Process the first input of prhs */
-	xCurr = mxGetPr(prhs[0]);
+	states = mxGetPr(prhs[0]);
 
 	/* Process the second input of prhs */
 	parameters = mxGetPr(prhs[1]);
@@ -69,50 +70,50 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	 *
 	 * *****************************************************************/
 
-	char *panicFileName = NULL;
-	char *periodicFileName = NULL;
-	long long unsigned *numHistory = NULL;
+	char *panic_file_name = NULL;
+	char *periodic_file_name = NULL;
+	long long unsigned *num_history = NULL;
 	long long unsigned *period = NULL;
 	bool assignedDefault[NUM_OF_FIELDS] =
-	{ false };
+			{ false };
 
 	/* pointer to field names */
 	const char **fnames;
 
-	int numFields;
-	mwSize NStructElems;
+	int num_fields;
+	mwSize num_of_elements_in_structure;
 	mxArray *fields[MAX_FIELDS];
 
 	const mxArray *struct_array = prhs[2];
 
-	/* Preassign the class of each element present in the structure */
+	/* Pre assign the class of each element present in the structure */
 	mxClassID classIDflags[] =
-	{ mxCHAR_CLASS, mxCHAR_CLASS, mxUINT64_CLASS, mxUINT64_CLASS };
+			{ mxCHAR_CLASS, mxCHAR_CLASS, mxUINT64_CLASS, mxUINT64_CLASS };
 
 	/* check if the input in struct_array is a structure */
 	if (mxIsStruct(struct_array) == false)
 	{
 		mexErrMsgIdAndTxt("SSA:programOptions:inputNotStruct",
-				"Input must be a structure.");
+						  "Input must be a structure.");
 	}
 
 	/* get number of elements in structure */
-	numFields = mxGetNumberOfFields(struct_array);
-	//mexPrintf("Number of fields provided in structure %d \n", numFields);
-	if (numFields != NUM_OF_FIELDS)
+	num_fields = mxGetNumberOfFields(struct_array);
+	//mexPrintf("Number of fields provided in structure %d \n", num_fields);
+	if (num_fields != NUM_OF_FIELDS)
 	{
 		mexWarnMsgIdAndTxt("SSA:programOptions:NumOfStructElementMismatch",
-				"The expected number of elements in structure does not match with the provided\n");
-		//mexPrintf("Expected vs Provided : %d  %d\n", NUM_OF_FIELDS, numFields);
+						   "The expected number of elements in structure does not match with the provided\n");
+		//mexPrintf("Expected vs Provided : %d  %d\n", NUM_OF_FIELDS, num_fields);
 	}
 
-	NStructElems = mxGetNumberOfElements(struct_array);
-	//mexPrintf("Number of elements in structure %d \n", NStructElems);
+	num_of_elements_in_structure = mxGetNumberOfElements(struct_array);
+	//mexPrintf("Number of elements in structure %d \n", num_of_elements_in_structure);
 	/* allocate memory  for storing pointers */
-	fnames = (const char**) mxCalloc(numFields, sizeof(*fnames));
+	fnames = (const char**) mxCalloc(num_fields, sizeof(*fnames));
 
 	/* get field name pointers */
-	for (int i = 0; i < numFields; i++)
+	for (int i = 0; i < num_fields; i++)
 	{
 		fnames[i] = mxGetFieldNameByNumber(struct_array, i);
 
@@ -120,77 +121,77 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	/* get the panic file name*/
 	mxArray *panic_file = getFieldPointer(struct_array, 0,
-			fnames[PANIC_FILE_INDEX], classIDflags[0]);
+										  fnames[PANIC_FILE_INDEX], classIDflags[0]);
 	if (panic_file != NULL)
 	{
 
-		panicFileName = mxArrayToString(panic_file);
-		//mexPrintf("panic file name %s \n", panicFileName);
+		panic_file_name = mxArrayToString(panic_file);
+		//mexPrintf("panic file name %s \n", panic_file_name);
 
 	}
 	else
 	{
 		int buflen = strlen(DEFAULT_PANIC_FILE) + 1;
-		panicFileName = (char *) mxCalloc(buflen, sizeof(char));
-		strcpy(panicFileName, DEFAULT_PANIC_FILE);
-		//mexPrintf("default panic file name %s \n", panicFileName);
+		panic_file_name = (char *) mxCalloc(buflen, sizeof(char));
+		strcpy(panic_file_name, DEFAULT_PANIC_FILE);
+		//mexPrintf("default panic file name %s \n", panic_file_name);
 		assignedDefault[PANIC_FILE_INDEX] = true;
 	}
 
 	/* get the periodic file name*/
 	mxArray *periodic_file = getFieldPointer(struct_array, 0,
-			fnames[PERIODIC_FILE_INDEX], classIDflags[1]);
+											 fnames[PERIODIC_FILE_INDEX], classIDflags[1]);
 	if (periodic_file != NULL)
 	{
 
-		periodicFileName = mxArrayToString(periodic_file);
-		//mexPrintf("periodic file name %s \n", periodicFileName);
+		periodic_file_name = mxArrayToString(periodic_file);
+		//mexPrintf("periodic file name %s \n", periodic_file_name);
 
 	}
 	else
 	{
 		int buflen = strlen(DEFAULT_PERIODIC_FILE) + 1;
-		periodicFileName = (char *) mxCalloc(buflen, sizeof(char));
-		strcpy(periodicFileName, DEFAULT_PERIODIC_FILE);
-		//mexPrintf("default periodic file name %s \n", periodicFileName);
+		periodic_file_name = (char *) mxCalloc(buflen, sizeof(char));
+		strcpy(periodic_file_name, DEFAULT_PERIODIC_FILE);
+		//mexPrintf("default periodic file name %s \n", periodic_file_name);
 		assignedDefault[PERIODIC_FILE_INDEX] = true;
 
 	}
 
 	/* get the max history value */
 	mxArray *num_history_pointer = getFieldPointer(struct_array, 0,
-			fnames[NUM_HISTORY_INDEX], classIDflags[2]);
+												   fnames[NUM_HISTORY_INDEX], classIDflags[2]);
 
 	if (num_history_pointer != NULL)
 	{
 
-		numHistory = (long long unsigned*) mxGetData(num_history_pointer);
-		//mexPrintf("num history value %llu \n", *numHistory);
+		num_history = (long long unsigned*) mxGetData(num_history_pointer);
+		mexPrintf("num history value %llu \n", *num_history);
 	}
 	else
 	{
-		numHistory = (long long unsigned *) mxCalloc(1,
-				sizeof(long long unsigned));
-		*numHistory = DEFAULT_NUM_HISTORY;
-		//mexPrintf("default max history value %llu \n", *numHistory);
+		num_history = (long long unsigned *) mxCalloc(1,
+													  sizeof(long long unsigned));
+		*num_history = DEFAULT_NUM_HISTORY;
+		//mexPrintf("default max history value %llu \n", *num_history);
 		assignedDefault[NUM_HISTORY_INDEX] = true;
 	}
 
 	/* sanity check - maxHistroy should be less than MAX_HISTORY */
-	if (*numHistory > MAX_HISTORY)
+	if (*num_history > MAX_HISTORY)
 	{
-		*numHistory = MAX_HISTORY;
+		*num_history = MAX_HISTORY;
 	}
 
 	/* get the period value */
 	mxArray *period_pointer = getFieldPointer(struct_array, 0,
-			fnames[PERIOD_INDEX], classIDflags[3]);
+											  fnames[PERIOD_INDEX], classIDflags[3]);
 
 	if (period_pointer != NULL)
 	{
 
 		period = (long long unsigned *) mxGetPr(period_pointer);
-		//mexPrintf("period value %llu \n", *period);
+		mexPrintf("period value %llu \n", *period);
 	}
 	else
 	{
@@ -204,10 +205,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	mxFree((void *) fnames);
 
 	/* Process the fourth input of prhs array */
-	timepoints = mxGetPr(prhs[3]);
+	time_points = mxGetPr(prhs[3]);
 
 	/* Process the fifth input of prhs array */
-	numTimepts = (int) mxGetScalar(prhs[4]);
+	time_points_count = (int) mxGetScalar(prhs[4]);
 
 	/* Declare IMs*/
 	double cumProps[SSA_NumReactions];
@@ -220,251 +221,81 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	double* timecourse;
 
 	/* Create Outputs I */
-	plhs[0] = mxCreateDoubleMatrix(SSA_NumStates * numTimepts, 1, mxREAL);
+	plhs[0] = mxCreateDoubleMatrix(SSA_NumStates * time_points_count, 1, mxREAL);
 	timecourse = mxGetPr(plhs[0]);
 
 #ifdef LOGGING
+    LoggingParameters logging_parameters;
+ 	logging_parameters.panic_file_name_ = std::string(panic_file_name);
+ 	logging_parameters.periodic_file_name_ = std::string(periodic_file_name);
+ 	logging_parameters.num_history_ = *num_history;
+ 	logging_parameters.logging_period_= *period;
+ 	Logger logger(logging_parameters);
+ 	logger.initializeLoggingLevelOfVar();
 
-	//std::cout<<"logging enabled..\n"<<std::endl;
+	std::cout<<"logging enabled..\n"<<std::endl;
 
-	/* definition of log levels, lower the value of
-	 * logging level means higher level of verbosity.
-	 *
-	 * INFO - { STATES,PROPENSITIES, REACTION_INDICIES}
-	 * DEBUG - {T_CURR ,T_NEXT , CHOOSEN_PROPENSITY }  + INFO
-	 * ALL - {RAND_ONE , RAND_TWO } + DEBUG
-	 */
 
-	int log_level_of_var[NUM_VARS];
-
-	/* set the logging level for each variable
-	 * For example,for RAND_ONE the level is set to 0
-	 * so this variable will be logged when logging flag is
-	 * set to ALL. If logging flag will be set to DEBUG or
-	 * INFO then this variable will not be logged.
-	 * so a varible is logged if its set flag value is higher than
-	 * the value of logging_flag.
-	 */
-	log_level_of_var[RAND_ONE] = 0;
-	log_level_of_var[RAND_TWO] = 0;
-	log_level_of_var[T_CURR] = 1;
-	log_level_of_var[T_NEXT] = 1;
-	log_level_of_var[STATES] = 2;
-	log_level_of_var[PROPENSITIES] = 2;
-	log_level_of_var[CHOSEN_PROPENSITY] = 1;
-	log_level_of_var[REACTION_INDEX] = 2;
-
-	/* Panic log file name */
-	std::string panic_file_name(panicFileName);
-	std::ofstream panic_fstream;
-
-	/* periodic log file */
-	std::string periodic_file_name(periodicFileName);
-	std::ofstream periodic_fstream;
-	openOutputStream(periodic_file_name, periodic_fstream);
-
-	LOGLEVEL level;
-
-	/* definition of variables to store the states */
-	double logRandOne[MAX_HISTORY];
-	double logRandTwo[MAX_HISTORY];
-	double logTCurr[MAX_HISTORY];
-	double logTNext[MAX_HISTORY];
-	double logCurrentStates [MAX_HISTORY][SSA_NumStates];
-	double logPropensities [MAX_HISTORY][SSA_NumReactions];
-	double logChosenPropensity [MAX_HISTORY];
-	double logChosenReactionIndex [MAX_HISTORY];
 	/* set level */
 #ifdef LEVEL_ALL
 
-	level = ALL;
+	//level = ALL;
+	logger.setLogLevel(ALL);
 
 #elif LEVEL_DEBUG
 
-	level = DEBUG;
+	//level = DEBUG;
+	logger.setLogLevel(DEBUG);
 
 #elif LEVEL_INFO
 
-	level = INFO;
+	//level = INFO;
+	logger.setLogLevel(INFO);
 
 #else
 
-	level = OFF;
+	//level = OFF;
+	logger.setLogLevel(OFF);
 	/* As level is off disable the logging flag */
-	//std::cout<<"disabling logging as logging flag is set to OFF\n"<<std::endl;
+	std::cout<<"disabling logging as logging flag is set to OFF\n"<<std::endl;
 #undef LOGGING
 
 #endif
 
 	/* initialize the logging flag for variables */
-	bool logging_flag_of_var[NUM_VARS];
-	initializeLoggingFlags(level,log_level_of_var,logging_flag_of_var);
+	logger.initializeLoggingFlags();
 
 #endif
 
-	/* Write initial conditions to output */
-	iTime = 0;
-	for (int i = 0; i < SSA_NumStates; i++)
-	{
-		timecourse[iTime * SSA_NumStates + i] = xCurr[i];
-	}
-	iTime++;
-	tNext = timepoints[iTime];
+	// create simulation input structure
+	SimulationParametersIn simulation_parameters_in;
+	simulation_parameters_in.states_ = states;
+	simulation_parameters_in.time_points_count_ = time_points_count;
+	simulation_parameters_in.time_points_ = time_points;
+	simulation_parameters_in.parameters_ = parameters;
 
-	/* Start iteration*/
-	tCurr = timepoints[0];
-	tNext = timepoints[iTime];
-	long long unsigned globalCounter = 0;
-	long long unsigned historyCounts = 0;
+	// create simulation output structure
+	SimulationParametersOut simulation_parameters_out;
+	simulation_parameters_out.timecourse_ = timecourse;
 
-	while (tCurr < timepoints[numTimepts - 1])
-	{
-		/*mexPrintf("tCurr: %lf, timepoints : %lf\n", tCurr,
-				timepoints[numTimepts - 1]);*/
-		// Debugging info - massive performance decrease
-		double rand1 = std::max(1.0, (double) rand()) / (double) RAND_MAX;
-		double rand2 = std::max(1.0, (double) rand()) / (double) RAND_MAX;
 
-		/* Calculate cumulative propensities in one step*/
-		int retVal = calculateCumProps(cumProps, xCurr, parameters);
-		//retVal = -1;
-		if (retVal == -1)
-		{
-#ifdef LOGGING
+	GillespieBasic* gillespie =  new GillespieBasic(logger);
+	std::cout<<"starting simulation..\n"<<std::endl;
+	gillespie->runSimulation(simulation_parameters_in,simulation_parameters_out);
 
-			openOutputStream(panic_file_name, panic_fstream);
-			writeLastNSteps(FILE_OUTPUT,panic_fstream, historyCounts, *numHistory,level, logging_flag_of_var, logRandOne,
-					logRandTwo, logTCurr,logTNext,
-					logCurrentStates,
-					logPropensities,
-					logChosenPropensity, logChosenReactionIndex);
-
-#endif
-			mexErrMsgIdAndTxt("SSA:InvalidPropensity",
-					"Propensity can not be negative");
-		}
-
-		/* Sample reaction time*/
-		/*TODO : temp = ( \sum_{k=1}^M cumPropos[k] ) * log ( 1/ rand1);
-		 * however in current implementation only the propensity of last
-		 * reaction is taken, which is not according to Gillespie algorithm.
-		 * a0 = ( \sum_{k=1}^M cumPropos[k] )
-		 */
-		/* Calculate the sum of all propensities */
-//		double cumulativePropensity = 0;
-//
-//		for (int i = 0; i < SSA_NumReactions; i++)
-//		{
-//			cumulativePropensity += cumProps[i];
-//		}
-		double temp = 1 / cumProps[SSA_NumReactions - 1] * log(1 / rand1);
-		if (temp >=  std::numeric_limits<double>::max())
-		{
-#ifdef LOGGING
-
-			openOutputStream(panic_file_name, panic_fstream);
-			writeLastNSteps(FILE_OUTPUT,panic_fstream, historyCounts, *numHistory,level, logging_flag_of_var, logRandOne,
-					logRandTwo, logTCurr,logTNext,
-					logCurrentStates,
-					logPropensities,
-					logChosenPropensity, logChosenReactionIndex);
-
-#endif
-			mexErrMsgIdAndTxt("SSA:InvalidTcurr",
-					"Value of tCurr can not be inf");
-		}
-		tCurr = tCurr + temp;
-
-		/* If time > time out, write next datapoint to output*/
-		while (tCurr >= tNext && iTime < numTimepts)
-		{
-
-			// this will save the repeated calculation
-			int cIndex = iTime * SSA_NumStates;
-			for (int i = 0; i < SSA_NumStates; i++)
-			{
-
-				timecourse[cIndex + i] = xCurr[i];
-				//   mexPrintf(" %d",xCurr[i]);
-			}
-			//mexPrintf("\n");
-			iTime++;
-			tNext = timepoints[iTime];
-		}
-
-		/* Sample reaction index*/
-		/* TODO : here also instead of cumProps[SSA_NumReactions - 1]
-		 * we should use a0 according to Gillespie algorithm
-		 */
-
-		//double chosenProp = rand2 * cumulativePropensity;
-		double chosenProp = rand2 * cumProps[SSA_NumReactions - 1];
-		reactionIndex = 1;
-		//double tempCumulativePropensity = 0;
-		for (int i = 1; cumProps[i - 1] <= chosenProp; i++)
-		{
-			//tempCumulativePropensity += cumProps[i - 1];
-			reactionIndex = i + 1;
-		}
-		/* Update xCurr */
-		updateState(xCurr, reactionIndex);
-		//std::cout<<"updating logs...\n"<<std::endl;
-
-#ifdef  LOGGING
-		/* this call store the parameters of simulation which can used to print
-		 * at later stage in case of any error
-		 */
-
-		//std::cout<<"updating logs...\n"<<std::endl;
-		update_logRotation(historyCounts,level, logging_flag_of_var, logRandOne,
-				logRandTwo, logTCurr,logTNext,
-				logCurrentStates,
-				logPropensities,
-				logChosenPropensity, logChosenReactionIndex,
-				rand1, rand2, tCurr,
-				tNext, xCurr,
-				cumProps,
-				chosenProp ,reactionIndex);
-
-		historyCounts = historyCounts + 1;
-		if (historyCounts > *numHistory)
-		{
-			historyCounts = 0;
-		}
-	
-		/* write the current state of the system to log file */
-		if (globalCounter % *period == 0)
-		{
-
-			//mexPrintf("printing logs..");
-			writeOneStep(FILE_OUTPUT,periodic_fstream,globalCounter, level, logging_flag_of_var, rand1,
-					rand2, tCurr,tNext,
-					xCurr,cumProps,
-					chosenProp, reactionIndex);
-
-		}
-#endif
-		globalCounter = globalCounter + 1;
-        mexPrintf("global counter : %llu\n", globalCounter);
-
-	}
-#ifdef LOGGING
-	panic_fstream.close();
-	periodic_fstream.close();
-#endif
 
 	/*free the allocated memory */
 	if (assignedDefault[PANIC_FILE_INDEX] == true)
 	{
-		mxFree((void*) panicFileName);
+		mxFree((void*) panic_file_name);
 	}
 	if (assignedDefault[PERIODIC_FILE_INDEX] == true)
 	{
-		mxFree((void*) periodicFileName);
+		mxFree((void*) periodic_file_name);
 	}
 	if (assignedDefault[NUM_HISTORY_INDEX] == true)
 	{
-		mxFree((void*) numHistory);
+		mxFree((void*) num_history);
 	}
 	if (assignedDefault[PERIOD_INDEX] == true)
 	{
