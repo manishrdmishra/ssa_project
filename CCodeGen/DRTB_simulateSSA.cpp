@@ -126,7 +126,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	{
 
 		panic_file_name = mxArrayToString(panic_file);
-		//mexPrintf("panic file name %s \n", panic_file_name);
+		mexPrintf("panic file name : %s \n", panic_file_name);
 
 	}
 	else
@@ -134,7 +134,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		int buflen = strlen(DEFAULT_PANIC_FILE) + 1;
 		panic_file_name = (char *) mxCalloc(buflen, sizeof(char));
 		strcpy(panic_file_name, DEFAULT_PANIC_FILE);
-		//mexPrintf("default panic file name %s \n", panic_file_name);
+		mexPrintf("default panic file name :  %s \n", panic_file_name);
 		assignedDefault[PANIC_FILE_INDEX] = true;
 	}
 
@@ -145,7 +145,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	{
 
 		periodic_file_name = mxArrayToString(periodic_file);
-		//mexPrintf("periodic file name %s \n", periodic_file_name);
+		mexPrintf("periodic file name :  %s \n", periodic_file_name);
 
 	}
 	else
@@ -153,7 +153,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		int buflen = strlen(DEFAULT_PERIODIC_FILE) + 1;
 		periodic_file_name = (char *) mxCalloc(buflen, sizeof(char));
 		strcpy(periodic_file_name, DEFAULT_PERIODIC_FILE);
-		//mexPrintf("default periodic file name %s \n", periodic_file_name);
+		mexPrintf("default periodic file name %s \n", periodic_file_name);
 		assignedDefault[PERIODIC_FILE_INDEX] = true;
 
 	}
@@ -166,14 +166,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	{
 
 		num_history = (long long unsigned*) mxGetData(num_history_pointer);
-		mexPrintf("num history value %llu \n", *num_history);
+		mexPrintf("num history value :  %llu \n", *num_history);
 	}
 	else
 	{
 		num_history = (long long unsigned *) mxCalloc(1,
 													  sizeof(long long unsigned));
 		*num_history = DEFAULT_NUM_HISTORY;
-		//mexPrintf("default max history value %llu \n", *num_history);
+		mexPrintf("default max history value :  %llu \n", *num_history);
 		assignedDefault[NUM_HISTORY_INDEX] = true;
 	}
 
@@ -191,13 +191,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	{
 
 		period = (long long unsigned *) mxGetPr(period_pointer);
-		mexPrintf("period value %llu \n", *period);
+		mexPrintf("period value  : %llu \n", *period);
 	}
 	else
 	{
 		period = (long long unsigned *) mxCalloc(1, sizeof(long long unsigned));
 		*period = DEFAULT_PERIOD;
-		//mexPrintf("default period value %llu \n", *period);
+		mexPrintf("default period value :  %llu \n", *period);
 		assignedDefault[PERIOD_INDEX] = true;
 	}
 
@@ -286,7 +286,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	// instantiate Gillespie object according to logging is enabled or disabled
 	Gillespie* gillespie =  new GillespieBasic(logger);
-	std::cout<<"starting simulation..\n"<<std::endl;
+	std::cout<<"running simulation..\n"<<std::endl;
 	gillespie->runSimulation(simulation_parameters_in,simulation_parameters_out);
 
 

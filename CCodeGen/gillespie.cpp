@@ -6,7 +6,7 @@
 
 void Gillespie::initializeSimulation(SimulationParametersIn& simulation_parameters_in, SimulationParametersOut& simulation_parameters_out)
 {
-    std::cout<<"initializing the simulation\n";
+    //std::cout<<"initializing the simulation\n";
     itime_ = 0;
     /* write initial conditions to output */
     for ( int i  = 0; i < SSA_NumStates ;  i++)
@@ -55,7 +55,7 @@ void GillespieBasic::runSimulation(SimulationParametersIn& simulation_parameters
 {
 
     // initialize simulation
-    std::cout<<"initializing the simulation\n";
+    //std::cout<<"initializing the simulation\n";
     initializeSimulation(simulation_parameters_in, simulation_parameters_out);
 
     // declaration of some local variables

@@ -146,7 +146,7 @@ tic,
 
 compiler_options.cleanup = 1;
 compiler_options.optimization = 1;
-compiler_options.logging = 1;
+compiler_options.logging = 0;
 compiler_options.logging_level = 0;
 
 dr_compileModel(system,'testAtefeh',compiler_options);
@@ -164,13 +164,14 @@ a  = find(cumsum(model.p0)>=rand,1,'first');
 program_options.panic_file_name = 'panic_log.txt';
 program_options.periodic_file_name = 'periodic_log.txt';
 program_options.max_history = cast(100,'uint64');
-program_options.period = cast(1,'uint64');
+program_options.period = cast(10,'uint64');
 
 x0 = system.index(a,:)';
 %x0 = [1000;1000;100;50];
 dr_X_SSA = dr_runSSAWithModel(t,x0,theta,program_options,'testAtefeh',Nssa); % This function returns the state vector X_SSA at the prespecified time
-% vector t.
 
+% vector t.
+%dr_X_SSA = dr_runSSA(system,t, x0, theta, program_options, Nssa);
 dr_m_SSA = mean(dr_X_SSA,3);
 dr_C_SSA = var(dr_X_SSA,[],3);
 fprintf('C-based simulation time:');
