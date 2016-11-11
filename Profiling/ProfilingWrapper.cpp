@@ -14,31 +14,35 @@ typedef void (*mexFunction_t)(int nargout, mxArray *pargout [ ], int nargin, con
 int main(int argc, const char *argv[])
 
 {
-    Engine *ep;
-    char buff[1024];
+    Engine *engine;
+    char buffer[1024];
     int i;
 
     /* matlab must be in the PATH! */
-    if (!(ep = engOpen("matlab -nodisplay"))) {
+    if (!(engine= engOpen("matlab -nodisplay")))
+    {
         fprintf(stderr, "Can't start MATLAB engine\n");
         return -1;
     }
-    engOutputBuffer(ep, buff, 1023);
+    engOutputBuffer(engine, buffer, 1023);
 
     /* load the mex file */
-    if(argc<2){
+    if(argc<2)
+    {
         fprintf(stderr, "Error. Give full path to the MEX file as input parameter.\n");
         return -1;
     }
     void *handle = dlopen(argv[1], RTLD_NOW);
-    if(!handle){
+    if(handle == NULL)
+    {
         fprintf(stderr, "Error loading MEX file: %s\n", strerror(errno));
         return -1;
     }
 
     /* grab mexFunction handle */
     mexFunction_t mexfunction = (mexFunction_t)dlsym(handle, "mexFunction");
-    if(!mexfunction){
+    if(mexfunction == NULL)
+    {
         fprintf(stderr, "MEX file does not contain mexFunction\n");
         return -1;
     }
@@ -47,28 +51,31 @@ int main(int argc, const char *argv[])
     /* NOTE: parameters are MEX-file specific, so one has to modify this*/
     /* to fit particular needs */
     // 'x','parameters', 'options', 'timepoints','timepoints_count'
-    engEvalString(ep, "load input.mat");
-    mxArray *arg1 = engGetVariable(ep, "x");
-    mxArray *arg2 = engGetVariable(ep, "parameters");
-    mxArray *arg3 = engGetVariable(ep, "options");
-    mxArray *arg4 = engGetVariable(ep, "timepoints");
-    mxArray *arg5 = engGetVariable(ep, "timepoints_count");
-    mxArray *pargout[1] = {0};
-    const mxArray *pargin[5] = {arg1, arg2, arg3, arg4 , arg5};
+    engEvalString(engine, "load input.mat");
+    mxArray *states= engGetVariable(engine, "x");
+    mxArray *parameters= engGetVariable(engine, "parameters");
+    mxArray *program_options= engGetVariable(engine, "options");
+    mxArray *timepoints= engGetVariable(engine, "timepoints");
+    mxArray *timepoints_count= engGetVariable(engine, "timepoints_count");
+
+    // output of mexfuntion
+    mxArray *plhs[1] = {0};
+    // input to mexfunction
+    const mxArray *prhs[5] = {states, parameters, program_options, timepoints, timepoints_count};
 
     /* execute the mex function */
-    mexfunction(1, pargout, 5, pargin);
+    mexfunction(1, plhs, 5, prhs);
 
     /* print the results using MATLAB engine */
-    engPutVariable(ep, "result", pargout[0]);
-    engEvalString(ep, "result");
-    printf("%s\n", buff);
+    engPutVariable(engine, "result", plhs[0]);
+    engEvalString(engine, "result");
+    printf("%s\n", buffer);
 
     /* cleanup */
-    mxDestroyArray(pargout[0]);
-    engEvalString(ep, "clear all;");
+    mxDestroyArray(plhs[0]);
+    engEvalString(engine, "clear all;");
     dlclose(handle);
-    engClose(ep);
+    engClose(engine);
 
     return 0;
 }

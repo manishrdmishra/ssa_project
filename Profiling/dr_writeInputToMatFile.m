@@ -84,7 +84,5 @@ options.period = p.Results.period;
 x               = x0+0; %#ok<*NASGU> %
 timepoints_count = numel(timepoints);
 save(file_name,'x','parameters', 'options', 'timepoints','timepoints_count');
-
-
 end
 
