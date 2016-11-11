@@ -41,7 +41,7 @@ void Gillespie::writeStatesToOutputOnTimeOut(SimulationParametersIn& simulation_
     }
 }
 
-GillespieBasic::GillespieBasic(Logger& logger)
+GillespieBasic::GillespieBasic(Logger *logger)
         :logger_(logger)
 {
 
@@ -83,8 +83,8 @@ void GillespieBasic::runSimulation(SimulationParametersIn& simulation_parameters
                               "Propensity can not be negative");
 #ifdef LOGGING
 
-            logger_.openPanicFileStream();
-			logger_.writeLastNSteps(FILE_OUTPUT,logger_.getPanicFileStream(), history_counts);
+            logger_->openPanicFileStream();
+			logger_->writeLastNSteps(FILE_OUTPUT,logger_.getPanicFileStream(), history_counts);
 
 #endif
         }
@@ -121,13 +121,13 @@ void GillespieBasic::runSimulation(SimulationParametersIn& simulation_parameters
 		 */
 
 		//std::cout<<"updating logs...\n"<<std::endl;
-		logger_.update_logRotation(history_counts,rand_one,
+		logger_->update_logRotation(history_counts,rand_one,
 				rand_two,time_curr_,time_next_,
 				simulation_parameters_in.states_,
 				cumulative_propensity_,
 				chosen_propensity ,reaction_index_);
 
-		if (history_counts > logger_.getNumOfHistory())
+		if (history_counts > logger_->getNumOfHistory())
 		{
 			history_counts = 0;
 		}
@@ -135,11 +135,11 @@ void GillespieBasic::runSimulation(SimulationParametersIn& simulation_parameters
 		history_counts = history_counts + 1;
 
 		/* write the current state of the system to log file */
-		if (global_counter % logger_.getLoggingPeriod() == 0)
+		if (global_counter % logger_->getLoggingPeriod() == 0)
 		{
 
 			//mexPrintf("printing logs..");
-			logger_.writeOneStep(FILE_OUTPUT,logger_.getPeriodicFileStream(),global_counter, rand_one,
+			logger_->writeOneStep(FILE_OUTPUT,logger_.getPeriodicFileStream(),global_counter, rand_one,
 					rand_two, time_curr_,time_next_,
 					simulation_parameters_in.states_,cumulative_propensity_,
 					chosen_propensity, reaction_index_);

@@ -224,18 +224,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	plhs[0] = mxCreateDoubleMatrix(SSA_NumStates * time_points_count, 1, mxREAL);
 	timecourse = mxGetPr(plhs[0]);
 
+
+
+	Logger *logger = NULL;
+
 #ifdef LOGGING
-    LoggingParameters logging_parameters;
- 	logging_parameters.panic_file_name_ = std::string(panic_file_name);
- 	logging_parameters.periodic_file_name_ = std::string(periodic_file_name);
- 	logging_parameters.num_history_ = *num_history;
- 	logging_parameters.logging_period_= *period;
- 	Logger logger(logging_parameters);
- 	logger.initializeLoggingLevelOfVar();
-
-	std::cout<<"logging enabled..\n"<<std::endl;
-
-
+	std::cout<<"logging flag is enabled..\n"<<std::endl;
 	/* set level */
 #ifdef LEVEL_ALL
 
@@ -262,6 +256,18 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 #endif
 
+    // if logging flag is enabled and log level is not set to OFF
+
+    // intantiate and initialize logging parameters
+	LoggingParameters logging_parameters;
+    logging_parameters.panic_file_name_ = std::string(panic_file_name);
+ 	logging_parameters.periodic_file_name_ = std::string(periodic_file_name);
+ 	logging_parameters.num_history_ = *num_history;
+ 	logging_parameters.logging_period_= *period;
+
+ 	// instantiate logger
+ 	logger = new Logger(logging_parameters);
+	logger.initializeLoggingLevelOfVar();
 	/* initialize the logging flag for variables */
 	logger.initializeLoggingFlags();
 
@@ -278,8 +284,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	SimulationParametersOut simulation_parameters_out;
 	simulation_parameters_out.timecourse_ = timecourse;
 
-
-	GillespieBasic* gillespie =  new GillespieBasic(logger);
+	// instantiate Gillespie object according to logging is enabled or disabled
+	Gillespie* gillespie =  new GillespieBasic(logger);
 	std::cout<<"starting simulation..\n"<<std::endl;
 	gillespie->runSimulation(simulation_parameters_in,simulation_parameters_out);
 
