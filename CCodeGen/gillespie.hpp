@@ -11,7 +11,7 @@
 
 #include "DRTB_modeldefHeader_tmp.hpp"
 #include "logger_tmp.hpp"
-class Logger;
+
 struct SimulationParametersIn
 {
 
@@ -72,12 +72,11 @@ class GillespieBasic : public Gillespie
 {
 public:
 
-    GillespieBasic(Logger& logger);
+    GillespieBasic(Logger *logger = NULL);
     ~GillespieBasic();
     void runSimulation(SimulationParametersIn& simulation_parameters_in, SimulationParametersOut& simulation_parameters_out);
 private:
-    Logger& logger_;
-
+    Logger *logger_;
 };
 
 

@@ -1,0 +1,149 @@
+This tool can be used to run SSA simulation.
+
+***********************************************************************************************************************
+ Features
+  1) Run SSA simulation with speed up gained by C++ code.
+  2) Choose variations of Gillespie agorithms on the fly. <TODO>
+  3) In case of error print the last n steps of the simulation in a given file.
+  4) Keep printing periodically the state of simulation in a given file.
+  5) Options to Speed up simulation by multi threading < TODO>
+  6) Profiling tool to analyse the performance of tool.
+
+***********************************************************************************************************************
+
+This tool exposes following APIs.
+
+1) dr_compileModel -  This script compiles the C++ source files and create mex executable.
+This provides the options to customize the compilation. If you want to compile with some custom
+setting then you should call this function. If you call dr_compileModle then to run the simulation
+you should use dr_runSSAWithModel.
+2) dr_runSSAWithModel - This script simulate the modle with the provided input arguments.
+3) dr_runSSA - This script executes the above two scripts.
+It provides some default values for compilation.
+
+
+
+Please find the details about these functions below.
+
+*******************************************************************************
+1 ) dr_compileModel(System, ExecID, compiler_options)
+
+  Input:
+  System  - Jan H. style SSA system definition struct. Ask him for details. (jan.hasenauer@helmholtz-muenchen.de)
+  ExecID  - Name desired for the executable. Note that a temp folder ExecID_tmp will be created.
+            Should this folder already exist, files might be overwritten. Confusion could commence.
+  compiler_options - This is a structure consists of four fields.
+    According to requirement we can assigne valid values to these fields.
+    1) cleanup -
+     Description -  By default, temp files (c++ source) and folder will be deleted after compilation.
+                    By specifying cleanup = 0, you can tell the function to keep temp files, e.g. for debugging causes.
+                    This function is a very well behaved function and will almost certainly obey.
+     Valid values -
+                     0  - keep temp files
+                     1  - remove temp files
+    2) compiler_optimization -
+     Description - if set to 1 then aggressively optimization is done else not. In case of aggressive
+                   optimization there might be some cases when the program execution is not predictable.
+     Valid values -
+                    0 - Compilation will be done without any compiler optimization
+                    1 - Compilation will be done with compiler optimization
+    3) logging -
+     Description - If this flag is set to 1 then logging will be enabled, if set to 0 then logging will
+                   be disabled. There are two types of logging are provided. 1) when there is some error during the
+                   simulation then the last n steps of simulation will be logged to a file.
+                   2) Periodically the steps of simulation will be logged to a file.
+     Valid values -
+                    0 - Logging will be disabled
+                    1 - Logging will be enabled
+    4) logging_level -
+     Description - This is used to set the verbosity of logging information. Lower the value , higher
+                   the verbosity of logging. If set to 0 then all the state variables are logged, if set
+                   to 3 then there will be no logging at all.
+     Valid values -
+                    0 - Verbosity is set to ALL.
+                    1 - Verbosity is set to DEBUG.
+                    2 - Verbosity is set to INFO.
+                    3 - Verbosity is set to OFF.
+     Definition of log levels -
+                     INFO - { STATES,PROPENSITIES, REACTION_INDICIES}
+                     DEBUG - {T_CURR ,T_NEXT , CHOOSEN_PROPENSITY }  + INFO
+                     ALL - {RAND_ONE , RAND_TWO } + DEBUG
+
+  Output:
+  No MATLAB output. Compiled executable is placed at current location.
+  Executable will be named ExecID, appended by the system appropriate
+  ending for mex-executables.
+
+*******************************************************************************
+  2 ) dr_runSSAWithModel(timepoints, x0, parameters, program_options, ExecID,numruns)
+         Run SSA simulation for compiled model without re-compiling
+
+       Input:
+        timepoints - Vector of desired output timepoints, should be ordered
+        x0         - Vector of initial conditions, needs to use the same ordering
+                    as System.state.variable of creating struct
+        parameters - Vector of model parameters, needs to use the same ordering
+                    as System.parameter.variable of creating struct
+        ExecID     - Name of SSA executable (e.g. produced with dr_compileModel)
+                    Executable needs to be on Matlab Path
+        numruns    - Number of replicates desired
+        program_options - It is a structure which is used to set the following variables.
+           panic_file_name<string >  -
+               Description - This string variable contains the name of file, which stores the state of the simulation
+                             when an error occurs and simulation can not proceed further.
+           periodic_file_name<string> -
+               Description - This string variable contains the name of file, which stores the simulation states periodically.
+
+           max_history -
+               Description - When simulation runs then we store the last n states of the simulation.
+                            When some error occurs then we print these last n states in to panic_file_name.
+                            So n is assigned the value provided by max_history.
+
+           period -
+               Description - After x steps the state of the simulation is written to a file periodic_file_name.
+                             so x is assigned the value provided by period.
+       Output:
+       Timecourse - NxMxZ array, where N = #States, M = #timepoints and
+       Z = numruns
+
+*******************************************************************************
+ 3) dr_runSSA(System,timepoints, x0, parameters, program_options, numruns)
+
+ Run compilation and SSA simulation for model
+
+ Input:
+ System  - Jan H. style SSA system definition struct. Ask him for
+              details (jan.hasenauer@helmholtz-muenchen.de)
+ timepoints - Vector of desired output timepoints, should be ordered
+ x0         - Vector of initial conditions, needs to use the same ordering
+              as System.state.variable of creating struct
+ parameters - Vector of model parameters, needs to use the same ordering
+              as System.parameter.variable of creating struct
+ numruns  - Number of replicates desired
+ program_options - It is a structure which is used to set the following variables.
+      panic_file_name<string >  -
+               Description - This string variable contains the name of file, which stores the state of the simulation
+                             when an error occurs and simulation can not proceed further.
+           periodic_file_name<string> -
+               Description - This string variable contains the name of file, which stores the simulation states periodically.
+
+           max_history -
+               Description - When simulation runs then we store the last n states of the simulation.
+                            When some error occurs then we print these last n states in to panic_file_name.
+                            So n is assigned the value provided by max_history.
+
+           period -
+               Description - After x steps the state of the simulation is written to a file periodic_file_name.
+                             so x is assigned the value provided by period.
+
+ Output:
+ Timecourse - NxMxZ array, where N = #States, M = #timepoints and
+ Z = numruns
+
+ dr_runSSA provides these default values for compilation.
+    cleanup = 1;
+    optimization = 1;
+    logging = 0;
+    logging_level = 0;
+*******************************************************************************
+***********************************************************************************************************************
