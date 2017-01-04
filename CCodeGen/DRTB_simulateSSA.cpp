@@ -67,6 +67,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	 *  period      -  After x steps the state of the simulation is written to
 	 *  			   a file periodic_file_name. so x is assigned the value
 	 *  			   provided by period.
+	 *  num_of_threads - Number of threads used to execute parallel sections
 	 *
 	 * *****************************************************************/
 
@@ -74,6 +75,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	char *periodic_file_name = NULL;
 	long long unsigned *num_history = NULL;
 	long long unsigned *period = NULL;
+    long long unsigned *num_of_threads = NULL;
 	bool assignedDefault[NUM_OF_FIELDS] =
 			{ false };
 
@@ -88,7 +90,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	/* Pre assign the class of each element present in the structure */
 	mxClassID classIDflags[] =
-			{ mxCHAR_CLASS, mxCHAR_CLASS, mxUINT64_CLASS, mxUINT64_CLASS };
+			{ mxCHAR_CLASS, mxCHAR_CLASS, mxUINT64_CLASS, mxUINT64_CLASS, mxUINT64_CLASS };
 
 	/* check if the input in struct_array is a structure */
 	if (mxIsStruct(struct_array) == false)
@@ -201,6 +203,26 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		assignedDefault[PERIOD_INDEX] = true;
 	}
 
+	/* get the number of threads */
+	mxArray *num_of_threads_pointer = getFieldPointer(struct_array, 0 ,
+													fnames[THREAD_INDEX],classIDflags[3]);
+    if(num_of_threads_pointer != NULL)
+	{
+		num_of_threads = (long long unsigned *) mxGetPr(num_of_threads_pointer);
+		mexPrintf("num of threads : %llu \n", *num_of_threads);
+
+	}
+	else
+	{
+		num_of_threads = (long long unsigned *) mxCalloc(1, sizeof(long long unsigned));
+		*num_of_threads = DEFAULT_NUM_THREADS;
+		mexPrintf("default num of threads :  %llu \n", *num_of_threads);
+		assignedDefault[THREAD_INDEX] = true;
+
+	}
+
+
+
 	/* free the memory */
 	mxFree((void *) fnames);
 
@@ -284,6 +306,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	SimulationParametersOut simulation_parameters_out;
 	simulation_parameters_out.timecourse_ = timecourse;
 
+#if defined(_OPENMP)
+	// set number of threads
+	omp_set_num_threads(*num_of_threads);
+#endif
+
 	// instantiate Gillespie object according to logging is enabled or disabled
 	Gillespie* gillespie =  new GillespieBasic(logger);
 	std::cout<<"running simulation..\n"<<std::endl;
@@ -306,6 +333,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	if (assignedDefault[PERIOD_INDEX] == true)
 	{
 		mxFree((void *) period);
+	}
+	if (assignedDefault[THREAD_INDEX] == true)
+	{
+		mxFree((void *) num_of_threads);
 	}
 }
 

@@ -62,6 +62,7 @@ function [] = dr_compileModel(System, ExecID, compiler_options)
 % optimization = {0,1}, default - 0
 % logging = {0,1} , default - 0
 % logging_level = [0 3] , default - 3
+% num_of_threads = [1, max_num_of_threads], default - 1
 
 
 % Get the instance of input parse
@@ -82,6 +83,10 @@ addParameter(p,'logging',default);
 %set the default value for logging_level
 default = 4;
 addParameter(p,'logging_level',default);
+
+% set the default value for num_of_threads
+default = 1;
+addParameter(p,'num_of_threads',default);
 
 % parse the input argument compilter_options
 parse(p,compiler_options)
@@ -105,7 +110,7 @@ cd([ExecID '_tmp']);
 ModelStringMapping = dr_prepParser( System);
 
 % Write CPP files
-dr_writeModelDef(System,ModelStringMapping); % 'DRTB_modeldef_tmp.cpp'
+dr_writeModelDef(System,ModelStringMapping,options.num_of_threads); % 'DRTB_modeldef_tmp.cpp'
 dr_writeModelDefHeader(System);              % 'DRTB_modeldefHeader_tmp.hpp'
 copyfile(which('DRTB_simulateSSA.cpp'),'DRTB_simulateSSA_tmp.cpp');
 copyfile(which('logger.hpp'),'logger_tmp.hpp');
@@ -128,17 +133,20 @@ flags.ldflags = {};
 flags.cc{end+1} = '-v' ;
 flags.cc{end + 1} = '-cxx';
 flags.cxx{end+1} = 'g++' ;
+
+
 %flags.cxxflags{end + 1} = '-std=c++11';
 flags.cxxflags{end + 1} = '--ansi';
 flags.cxxflags{end + 1} = '-D_GNU_SOURCE';
-flags.ldflags{end + 1 } = '-pthread';
-flags.ldflags{end + 1 } = '-shared';
-flags.ldflags{end + 1 } = '-fopenmp';
-flags.ldflags{end + 1} = '-g';
-flags.ldflags{end + 1 } = '-Wl,--no-undefined';
 flags.cxxflags{end + 1 } = '-fPIC';
 flags.cxxflags{end + 1 } = '-fno-omit-frame-pointer';
-flags.cxxflags{end + 1 } = '-fopenmp';
+%flags.cxxflags{end + 1 } = '-pg'
+
+flags.ldflags{end + 1 } = '-pthread';
+flags.ldflags{end + 1 } = '-shared';
+flags.ldflags{end + 1} = '-g';
+flags.ldflags{end + 1 } = '-Wl,--no-undefined';
+%flags.ldflags{end + 1 } = '-pg';
 
 
 % set the debug level flags specified by user
@@ -153,7 +161,7 @@ end
 
 % set the flag to enable the logging
 if(options.logging == 1)
-flags.cxxflags{end + 1 } = '-DLOGGING';
+flags.cxxflags{end + 1} = '-DLOGGING';
 end
 
 % set the optimization flags
@@ -169,10 +177,19 @@ end
 
 
 
+%set openmp flags if parallelization option is enabled 
+
+%flags.cxxflags{end + 1 } = '-fopenmp';
+%flags.ldflags{end + 1 } = '-fopenmp';
+%flags.cxxoptim{end + 1}  = '-fopenmp';
+
+
+
+
 %% set source files
 src = {};
-src{end + 1 } =  fullfile(pwd,'DRTB_simulateSSA_tmp.cpp');
-src{end + 1 } = fullfile(pwd,'DRTB_modeldef_tmp.cpp');
+src{end + 1} =  fullfile(pwd,'DRTB_simulateSSA_tmp.cpp');
+src{end + 1} = fullfile(pwd,'DRTB_modeldef_tmp.cpp');
 src{end + 1} = fullfile(pwd,'logger_tmp.cpp');
 src{end + 1} = fullfile(pwd,'gillespie_tmp.cpp');
 

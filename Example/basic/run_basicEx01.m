@@ -141,13 +141,16 @@ Nssa = 1;
 %% Optimized SSA simulation
 tic,
 
+ num_of_threads = 2;
+
 %% specify the compiler options
 % To get details about these flags, please look at dr_compileModel.m file
 
-compiler_options.cleanup = 1;
+compiler_options.cleanup = 0;
 compiler_options.optimization = 1;
 compiler_options.logging = 0;
 compiler_options.logging_level = 0;
+compiler_options.num_of_threads = num_of_threads;
 
 dr_compileModel(system,'testAtefeh',compiler_options);
 
@@ -159,13 +162,14 @@ a  = find(cumsum(model.p0)>=rand,1,'first');
 
 %% specify the options for mex executable 
 
+
 % To get details about these flags, please look at dr_runSSAWithModel.m file
 
 program_options.panic_file_name = 'panic_log.txt';
 program_options.periodic_file_name = 'periodic_log.txt';
 program_options.max_history = cast(100,'uint64');
 program_options.period = cast(10,'uint64');
-
+program_options.num_of_threads = cast(num_of_threads,'uint64');
 x0 = system.index(a,:)';
 %x0 = [1000;1000;100;50];
 dr_X_SSA = dr_runSSAWithModel(t,x0,theta,program_options,'testAtefeh',Nssa); % This function returns the state vector X_SSA at the prespecified time

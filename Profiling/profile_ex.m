@@ -116,30 +116,7 @@ for ix = 1:size(system.index,1)
 end
 
 
-%Nssa = 1000;
-Nssa = 1;
-%% Matlab based SSA simulation
-% v = @(X) theta.*[X(1);X(2);X(2);X(3);X(3);X(4);X(1)*X(4)];
-% S = [-1 +1  0  0  0  0 -1;...
-%     +1 -1  0  0  0  0  1;...
-%     0  0 +1 -1  0  0  0;...
-%     0  0  0  0 +1 -1  0];
-% tic,
-% gs_X_SSA = zeros(length(t),4,Nssa);
-% for i = 1:Nssa
-%     % Drawing of steady state
-%     a  = find(cumsum(model.p0)>=rand,1,'first');
-%     x0 = system.index(a,:)';
-%     gs_X_SSA(:,:,i) = simulateSSA(v,S,t,x0)'; % This function returns the state vector X_SSA at the prespecified time
-%     % vector t.
-% end
-% gs_m_SSA = mean(gs_X_SSA,3);
-% gs_C_SSA = var(gs_X_SSA,[],3);
-% fprintf('Original simulation time:');
-% toc,
 
-%% Optimized SSA simulation
-tic,
 
 %% specify the compiler options
 % To get details about these flags, please look at dr_compileModel.m file
@@ -151,7 +128,7 @@ compiler_options.logging_level = 0;
 
 dr_compileModel(system,'testAtefeh',compiler_options);
 
-tic,
+
 
 % Drawing of steady state
 a  = find(cumsum(model.p0)>=rand,1,'first');
@@ -167,38 +144,10 @@ program_options.max_history = cast(100,'uint64');
 program_options.period = cast(1,'uint64');
 
 x0 = system.index(a,:)';
+
+% write all the input parameters for mexFunction to .mat file
 writeInputToMatFile('input.mat',t, x0, theta, program_options);
-%x0 = [1000;1000;100;50];
-%dr_X_SSA = dr_runSSAWithModel(t,x0,theta,program_options,'testAtefeh',Nssa); % This function returns the state vector X_SSA at the prespecified time
-% vector t.
 
-%dr_m_SSA = mean(dr_X_SSA,3);
-%dr_C_SSA = var(dr_X_SSA,[],3);
-%fprintf('C-based simulation time:');
 
-toc,
 
-%% Visualize results
-% figure(1);title('Original simulation mean + var')
-% subplot(5,2, 1);plot(t,gs_m_SSA(:,:))
-% subplot(5,2, 2);plot(t,gs_C_SSA(:,:))
-% subplot(5,2, 3);plot(t,gs_m_SSA(:,1))
-% subplot(5,2, 4);plot(t,gs_C_SSA(:,1))
-% subplot(5,2, 5);plot(t,gs_m_SSA(:,2))
-% subplot(5,2, 6);plot(t,gs_C_SSA(:,2))
-% subplot(5,2, 7);plot(t,gs_m_SSA(:,3))
-% subplot(5,2, 8);plot(t,gs_C_SSA(:,3))
-% subplot(5,2, 9);plot(t,gs_m_SSA(:,4))
-% subplot(5,2,10);plot(t,gs_C_SSA(:,4))
 
-% figure(2);title('C-based simulation mean + var')
-% subplot(5,2, 1);plot(t,dr_m_SSA(:,:))
-% subplot(5,2, 2);plot(t,dr_C_SSA(:,:))
-% subplot(5,2, 3);plot(t,dr_m_SSA(:,1))
-% subplot(5,2, 4);plot(t,dr_C_SSA(:,1))
-% subplot(5,2, 5);plot(t,dr_m_SSA(:,2))
-% subplot(5,2, 6);plot(t,dr_C_SSA(:,2))
-% subplot(5,2, 7);plot(t,dr_m_SSA(:,3))
-% subplot(5,2, 8);plot(t,dr_C_SSA(:,3))
-% subplot(5,2, 9);plot(t,dr_m_SSA(:,4))
-% subplot(5,2,10);plot(t,dr_C_SSA(:,4))
