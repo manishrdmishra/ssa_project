@@ -306,10 +306,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	SimulationParametersOut simulation_parameters_out;
 	simulation_parameters_out.timecourse_ = timecourse;
 
-#if defined(_OPENMP)
+//#if defined(_OPENMP)
 	// set number of threads
 	omp_set_num_threads(*num_of_threads);
-#endif
+//#endif
 
 	// instantiate Gillespie object according to logging is enabled or disabled
 	Gillespie* gillespie =  new GillespieBasic(logger);

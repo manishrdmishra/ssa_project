@@ -138,15 +138,17 @@ flags.cxx{end+1} = 'g++' ;
 %flags.cxxflags{end + 1} = '-std=c++11';
 flags.cxxflags{end + 1} = '--ansi';
 flags.cxxflags{end + 1} = '-D_GNU_SOURCE';
-flags.cxxflags{end + 1 } = '-fPIC';
-flags.cxxflags{end + 1 } = '-fno-omit-frame-pointer';
+flags.cxxflags{end + 1} = '-fPIC';
+flags.cxxflags{end + 1} = '-fno-omit-frame-pointer';
 %flags.cxxflags{end + 1 } = '-pg'
+flags.cxxflags{end + 1} = '-fopenmp';
 
-flags.ldflags{end + 1 } = '-pthread';
-flags.ldflags{end + 1 } = '-shared';
+flags.ldflags{end + 1} = '-pthread';
+flags.ldflags{end + 1} = '-shared';
 flags.ldflags{end + 1} = '-g';
-flags.ldflags{end + 1 } = '-Wl,--no-undefined';
+flags.ldflags{end + 1} = '-Wl,--no-undefined';
 %flags.ldflags{end + 1 } = '-pg';
+flags.ldflags{end + 1 } = '-fopenmp';
 
 
 % set the debug level flags specified by user
@@ -174,16 +176,7 @@ disp('optimization flag is not set');
 flags.cxxoptim{end + 1} = '-O0';
 flags.cxxoptim{end + 1} = '-funroll-all-loops';
 end
-
-
-
-%set openmp flags if parallelization option is enabled 
-
-%flags.cxxflags{end + 1 } = '-fopenmp';
-%flags.ldflags{end + 1 } = '-fopenmp';
-%flags.cxxoptim{end + 1}  = '-fopenmp';
-
-
+flags.cxxoptim{end + 1}  = '-fopenmp';
 
 
 %% set source files
