@@ -70,6 +70,10 @@ addOptional(p,'max_history',default);
 default = cast(1000,'uint64');
 addOptional(p,'period',default);
 
+%set the default value for num_of_threads
+default = cast(1,'uint64');
+addOptional(p,'num_of_threads',default);
+
 % parse the input argument compilter_options
 % It also Fills the missing parameters by default values 
 parse(p,program_options)
@@ -81,6 +85,7 @@ options.panic_file_name = p.Results.panic_file_name;
 options.periodic_file_name = p.Results.periodic_file_name;
 options.max_history = p.Results.max_history;
 options.period = p.Results.period;
+options.num_of_threads = p.Results.num_of_threads;
 
 
 %% Core Algorithm

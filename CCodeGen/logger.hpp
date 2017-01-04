@@ -45,7 +45,7 @@
  *****************************************************************/
 
 #define MAX_FIELDS 20
-#define NUM_OF_FIELDS 4
+#define NUM_OF_FIELDS 5
 
 /* index for program_options structure elements 
  * ie. the first field is fixed for the name of panic file
@@ -56,6 +56,7 @@
 #define PERIODIC_FILE_INDEX 1
 #define NUM_HISTORY_INDEX 2
 #define PERIOD_INDEX 3
+#define THREAD_INDEX 4
 
 /*Default values for the debugging */
 
@@ -63,6 +64,7 @@
 #define DEFAULT_PERIODIC_FILE "periodic_log.txt"
 #define DEFAULT_NUM_HISTORY 100
 #define DEFAULT_PERIOD 100
+#define DEFAULT_NUM_THREADS 1
 
 
 /* Assigns an index to variables */
@@ -224,5 +226,6 @@ mxArray* getFieldPointer(const mxArray *struct_array, int index,
                          const char* field_name, mxClassID class_id_expected);
 
 
-#define CHECK_NOTNEG(reaction_id,propensity) if (propensity < 0) { mexPrintf("For reaction : %d the propensity is : %lf\n",reaction_id,propensity);return -1;}
+//#define CHECK_NOTNEG(reaction_id,propensity) if (propensity < 0) { mexPrintf("For reaction : %d the propensity is : %lf\n",reaction_id,propensity);return -1;}
+#define IS_PROPENSITY_NEGATIVE(reaction_id,propensity) if (propensity < 0) { mexPrintf("For reaction : %d the propensity is : %lf\n",reaction_id,propensity); ret_val = -1;}
 #endif

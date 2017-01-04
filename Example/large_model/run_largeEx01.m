@@ -44,13 +44,17 @@
     System = completeSystemSSA(System);
     
     %% Compile executable
+    
+     num_of_threads = 2;
     %% specify the compiler options
     % To get details about these flags, please look at dr_compileModel.m file
     
+   
     compiler_options.cleanup = 0;
     compiler_options.optimization = 1;
-    compiler_options.logging = 1;
+    compiler_options.logging = 0;
     compiler_options.logging_level = 2;
+    compiler_options.num_of_threads = num_of_threads;
     execName = 'largeExample01_basic';
     dr_compileModel(System, execName, compiler_options);
     %   copyfile(which(execName),[fileparts(which('run_largeEx01')) filesep 'bin' filesep]);
@@ -64,6 +68,7 @@
     program_options.periodic_file_name = 'periodic_log.txt';
     program_options.max_history = cast(100,'uint64');
     program_options.period = cast(100,'uint64');
+    program_options.num_of_threads = cast(num_of_threads,'uint64');
     
     %% Run simulation
     %   modelName = 'largeExample01_optimized';

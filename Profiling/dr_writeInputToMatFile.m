@@ -1,5 +1,5 @@
 function [] = writeInputToMatFile(file_name, timepoints, x0, parameters, program_options) %#ok<*INUSL>
-%% Run SSA simulation for compiled model without re-compiling
+%% write all the passed parameters to a mat file.
 %
 % Input:
 % timepoints - Vector of desired output timepoints, should be ordered
