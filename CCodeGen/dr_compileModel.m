@@ -179,6 +179,8 @@ end
 flags.cxxoptim{end + 1}  = '-fopenmp';
 
 
+flags.ldoptim{end + 1} = '-fopenmp';
+
 %% set source files
 src = {};
 src{end + 1} =  fullfile(pwd,'DRTB_simulateSSA_tmp.cpp');
@@ -208,7 +210,7 @@ mex(mopts{:});
 [~,~,MexExt] = fileparts(which('DRTB_simulateSSA_tmp'));
 cd(curDir);
 movefile([ExecID '_tmp/DRTB_simulateSSA_tmp' MexExt],[ExecID  MexExt]);
-if compiler_options.cleanup,
-rmdir([ExecID '_tmp'],'s');
+if (compiler_options.cleanup == 1)
+    rmdir([ExecID '_tmp'],'s');
 end
 end

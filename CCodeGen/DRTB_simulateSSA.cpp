@@ -252,26 +252,27 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 #ifdef LOGGING
 	std::cout<<"logging flag is enabled..\n"<<std::endl;
+	LOGLEVEL level = LOGLEVEL::OFF;
 	/* set level */
 #ifdef LEVEL_ALL
 
-	//level = ALL;
-	logger.setLogLevel(ALL);
+	level = LOGLEVEL::ALL;
+	//logger.setLogLevel(ALL);
 
 #elif LEVEL_DEBUG
 
-	//level = DEBUG;
-	logger.setLogLevel(DEBUG);
+	level = LOGLEVEL::DEBUG;
+	//logger.setLogLevel(DEBUG);
 
 #elif LEVEL_INFO
 
-	//level = INFO;
-	logger.setLogLevel(INFO);
+	level = LOGLEVEL::INFO;
+	//logger.setLogLevel(INFO);
 
 #else
 
-	//level = OFF;
-	logger.setLogLevel(OFF);
+	level = LOGLEVEL::OFF;
+	//logger.setLogLevel(OFF);
 	/* As level is off disable the logging flag */
 	std::cout<<"disabling logging as logging flag is set to OFF\n"<<std::endl;
 #undef LOGGING
@@ -289,6 +290,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
  	// instantiate logger
  	logger = new Logger(logging_parameters);
+	logger.setLogLevel(level);
 	logger.initializeLoggingLevelOfVar();
 	/* initialize the logging flag for variables */
 	logger.initializeLoggingFlags();
@@ -306,10 +308,26 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	SimulationParametersOut simulation_parameters_out;
 	simulation_parameters_out.timecourse_ = timecourse;
 
-//#if defined(_OPENMP)
-	// set number of threads
 	omp_set_num_threads(*num_of_threads);
-//#endif
+/*#pragma omp parallel sections
+	{
+	#pragma omp section
+		{
+
+			mexPrintf("section 1 id = %d, \n", omp_get_thread_num());
+		}
+	#pragma omp section
+		{
+
+			mexPrintf("section 2 id = %d, \n", omp_get_thread_num());
+		}
+	#pragma omp section
+		{
+
+			mexPrintf("section 3 id = %d, \n", omp_get_thread_num());
+		}
+	}
+ */
 
 	// instantiate Gillespie object according to logging is enabled or disabled
 	Gillespie* gillespie =  new GillespieBasic(logger);
