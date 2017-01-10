@@ -386,39 +386,6 @@ void Logger::closeFileStream(std::ofstream& fstream)
 
 }
 
-/**************************************************************************
- * input : struct_arrary ( a  pointer to Matlab structure )
- * input : index ( index of an element in structure )
- * input : fieldName ( name of the element )
- * input : classIdExpected ( expected class id of the element)
- * output : pointer to the corresponding structure element
- *
- * This function takes the above input arguments checks the validity of
- * the structure element and if everything is fine then returns a pointer.
- **************************************************************************/
-mxArray* getFieldPointer(const mxArray *struct_array, int index,
-		const char* fieldName, mxClassID classIdExpected) {
-	mxArray *fieldPointer = NULL;
-	//mexPrintf("executing getFieldPointer..");
-	fieldPointer = mxGetField(struct_array, index, fieldName);
-	if (fieldPointer == NULL || mxIsEmpty(fieldPointer)) {
-		//mexPrintf("Field %s is empty \n", fieldName);
-		mexWarnMsgIdAndTxt("SSA:programOptions:StructElementEmpty",
-				"The element in the structure is empty,default value will be assigned \n");
-
-		return NULL;
-	}
-//	mexPrintf("The class of field :   %s is : %d\n", fieldName,
-//			mxGetClassID(fieldPointer));
-	if (mxGetClassID(fieldPointer) != classIdExpected) {
-
-		mexErrMsgIdAndTxt("SSA:programOptions:inputNotStruct",
-				"Given class Id does not match with the expected class id");
-//        mexPrintf("The expected class of field :   %s is : %d\n", fieldName,
-//			classIdExpected);
-	}
-	return fieldPointer;
-}
 
 /**************************************************************************
  *
