@@ -72,11 +72,11 @@ class GillespieBasic : public Gillespie
 {
 public:
 
-    GillespieBasic(Logger *logger = NULL);
+    GillespieBasic(Logger* logger);
     ~GillespieBasic();
     void runSimulation(SimulationParametersIn& simulation_parameters_in, SimulationParametersOut& simulation_parameters_out);
 private:
-    Logger *logger_;
+    Logger* logger_;
 };
 
 

@@ -100,7 +100,7 @@ x               = x0+0; %#ok<*NASGU> %
 
 % Calculation of entire trajectory
 for i = 1:numruns
-    temp = eval([ExecID '(x,parameters, options, timepoints,numel(timepoints))']);%#ok<*ASGLU>
+    temp = eval([ExecID '(x,parameters,timepoints,numel(timepoints),options)']);%#ok<*ASGLU>
     Timecourse(:,:,i) = reshape(temp, numel(timepoints),numel(x));
 end
 

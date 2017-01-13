@@ -43,7 +43,7 @@ struct FieldNames
     FieldNames(size_t num_fields,const mxArray* options)
     {
 
-        names_= (const char**) mxCalloc(num_fields, sizeof(char));
+        names_= (const char**) mxCalloc(num_fields, sizeof(char*));
         /* get field name pointers */
         for (int i = 0; i != num_fields; ++i)
         {
