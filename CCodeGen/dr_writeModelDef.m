@@ -138,7 +138,7 @@ end
 % Helper functions 
 function[] =  writePropensityString(fid,modelCumPropStrings,index)
 fprintf(fid,['\t\t\t' modelCumPropStrings{index} '\n']);
-%fprintf(fid,'\t\t\tIS_PROPENSITY_NEGATIVE(%d, DRTB_CumProp[%d]);\n',index-1, index-1);
+fprintf(fid,'\t\t\tIS_PROPENSITY_NEGATIVE(%d, DRTB_CumProp[%d]);\n',index-1, index-1);
 end
 
 
