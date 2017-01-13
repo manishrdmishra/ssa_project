@@ -115,6 +115,7 @@ dr_writeModelDefHeader(System);              % 'DRTB_modeldefHeader_tmp.hpp'
 copyfile(which('DRTB_simulateSSA.cpp'),'DRTB_simulateSSA_tmp.cpp');
 copyfile(which('logger.hpp'),'logger_tmp.hpp');
 copyfile(which('logger.cpp'),'logger_tmp.cpp');
+copyfile(which('program_option_parser.hpp'),'program_option_parser_tmp.hpp');
 copyfile(which('gillespie.hpp'),'gillespie_tmp.hpp');
 copyfile(which('gillespie.cpp'),'gillespie_tmp.cpp');
 

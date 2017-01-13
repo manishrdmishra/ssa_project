@@ -41,7 +41,7 @@ void Gillespie::writeStatesToOutputOnTimeOut(SimulationParametersIn& simulation_
     }
 }
 
-GillespieBasic::GillespieBasic(Logger *logger)
+GillespieBasic::GillespieBasic(Logger* logger)
         :logger_(logger)
 {
 
@@ -84,7 +84,7 @@ void GillespieBasic::runSimulation(SimulationParametersIn& simulation_parameters
 #ifdef LOGGING
 
             logger_->openPanicFileStream();
-			logger_->writeLastNSteps(FILE_OUTPUT,logger_.getPanicFileStream(), history_counts);
+			logger_->writeLastNSteps(FILE_OUTPUT,logger_->getPanicFileStream(), history_counts);
 
 #endif
         }
@@ -139,7 +139,7 @@ void GillespieBasic::runSimulation(SimulationParametersIn& simulation_parameters
 		{
 
 			//mexPrintf("printing logs..");
-			logger_->writeOneStep(FILE_OUTPUT,logger_.getPeriodicFileStream(),global_counter, rand_one,
+			logger_->writeOneStep(FILE_OUTPUT,logger_->getPeriodicFileStream(),global_counter, rand_one,
 					rand_two, time_curr_,time_next_,
 					simulation_parameters_in.states_,cumulative_propensity_,
 					chosen_propensity, reaction_index_);
