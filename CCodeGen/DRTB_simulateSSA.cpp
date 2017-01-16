@@ -44,10 +44,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	time_points_count = (int) mxGetScalar(prhs[3]);
 
 	/* Process the fifth input of prhs array */
-	ProgramOptionsParser program_options(prhs[4]);
-	program_options.parse();
-
-
+	ProgramOptionsParser program_options_parser(prhs[4]);
+	const ProgramOptions* program_options = program_options_parser.parse();
 
 
 	/* Declare IMs*/
@@ -64,62 +62,45 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	plhs[0] = mxCreateDoubleMatrix(SSA_NumStates * time_points_count, 1, mxREAL);
 	timecourse = mxGetPr(plhs[0]);
 
+	// for parallelism
+	omp_set_num_threads(program_options->num_threads());
 
-
-	Logger *logger = NULL;
 	LOGLEVEL level;
 #ifdef LOGGING
 	std::cout<<"logging flag is enabled..\n"<<std::endl;
 	/* set level */
 #ifdef LEVEL_ALL
-
 	level = ALL;
-	//logger.setLogLevel(ALL);
-
 #elif LEVEL_DEBUG
-
 	level = DEBUG;
-	//logger.setLogLevel(DEBUG);
-
 #elif LEVEL_INFO
-
 	level = INFO;
-	//logger.setLogLevel(INFO);
-
 #else
-
 	level = OFF;
-	//logger.setLogLevel(OFF);
-	/* As level is off disable the logging flag */
+	/* As level is off, disable the logging flag */
 	std::cout<<"disabling logging as logging flag is set to OFF\n"<<std::endl;
 #undef LOGGING
+#endif
 
 #endif
 
-    // if logging flag is enabled and log level is not set to OFF
+	LoggerFactory logger_factory(program_options);
+	// if logging flag is enabled and log level is not set to OFF
+	Logger *logger = NULL;
+	if(level != OFF)
+	{
+		logger = logger_factory.create();
+		logger->setLogLevel(level);
+		/* initialize the logging flag for variables */
+		logger->initializeLoggingFlags();
 
-    // intantiate and initialize logging parameters
-	LoggingParameters logging_parameters;
-    logging_parameters.panic_file_name_ = std::string(program_options.panic_file_name());
- 	logging_parameters.periodic_file_name_ = std::string(program_options.periodic_file_name());
- 	/*long long unsgined num_history = program_options.num_history();
- 	 if (num_history > MAX_HISTORY)
-    {
-        mexWarnMsgIdAndTxt("SSA:programOptions:NUMOFHISTORYTOOBIG",
-                           "The value provided of number of history is too big, changing it to maximum allowed value\n");
-        num_history = MAX_HISTORY;
-    }
-    */
- 	logging_parameters.num_history_ = program_options.num_history();
- 	logging_parameters.logging_period_= program_options.period();
+	}
 
- 	// instantiate logger
- 	logger = new Logger(logging_parameters);
-	logger->setLogLevel(level);
-	logger->initializeLoggingLevelOfVar();
-	/* initialize the logging flag for variables */
-	logger->initializeLoggingFlags();
-#endif
+
+
+	SimulationFactory simulation_factory(logger);
+	// instantiate Gillespie object according to logging is enabled or disabled
+	Gillespie* gillespie = simulation_factory.create(Gillespie::BASIC);
 
 	// create simulation input structure
 	SimulationParametersIn simulation_parameters_in;
@@ -131,11 +112,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	// create simulation output structure
 	SimulationParametersOut simulation_parameters_out;
 	simulation_parameters_out.timecourse_ = timecourse;
-
-	omp_set_num_threads(program_options.num_threads());
-
-	// instantiate Gillespie object according to logging is enabled or disabled
-	Gillespie* gillespie = new GillespieBasic(logger);
 	std::cout<<"running simulation..\n"<<std::endl;
 	gillespie->runSimulation(simulation_parameters_in,simulation_parameters_out);
 
@@ -151,6 +127,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	{
 		delete logger;
 		logger = NULL;
+	}
+	if( program_options != NULL)
+	{
+		delete program_options;
+		program_options = NULL;
 	}
 
 }

@@ -10,6 +10,7 @@
 #include <fstream>
 
 #include "DRTB_modeldefHeader_tmp.hpp"
+#include "program_option_parser_tmp.hpp"
 
 /****************************************************************
  * In the simulation process there are variables which can be
@@ -49,14 +50,31 @@ enum VAR
     REACTION_INDEX
 };
 /*defines the different output destinations */
-enum OUTPUT {
+enum OUTPUT
+{
     STD_OUTPUT = 0, FILE_OUTPUT
 };
 
 /* Defines the log level */
-enum LOGLEVEL {
+enum LOGLEVEL
+{
     ALL = 0, DEBUG, INFO, OFF
 };
+
+/* definition of log levels, lower the value of
+ * logging level means higher level of verbosity.
+ * INFO - { STATES,PROPENSITIES, REACTION_INDICIES}
+ * DEBUG - {T_CURR ,T_NEXT , CHOSEN_PROPENSITY }  + INFO
+ * ALL - {RAND_ONE , RAND_TWO } + DEBUG
+ * set the logging level for each variable
+ * For example,for RAND_ONE the level is set to 0
+ * so this variable will be logged when logging flag is
+ * set to ALL. If logging flag will be set to DEBUG or
+ * INFO then this variable will not be logged.
+ * so a variable is logged if its set flag value is higher than
+ * the value of logging_flag.
+ */
+const int log_level_of_var_[ NUM_VARS ] = { 0, 0, 1, 1, 2, 2, 1, 2 };
 
 struct LoggingParameters
 {
@@ -67,11 +85,14 @@ struct LoggingParameters
 
 };
 
-class Logger {
+class Logger
+{
 
 public:
     Logger(LoggingParameters& logging_parameters)
             :logging_parameters_(logging_parameters)
+
+
     {
         openPeriodicFileStream();
     }
@@ -87,18 +108,7 @@ public:
     bool shouldBeLogged(VAR var);
 
     void initializeLoggingFlags();
-    void initializeLoggingLevelOfVar()
-    {
-        log_level_of_var_[RAND_ONE] = 0;
-        log_level_of_var_[RAND_TWO] = 0;
-        log_level_of_var_[T_CURR] = 1;
-        log_level_of_var_[T_NEXT] = 1;
-        log_level_of_var_[STATES] = 2;
-        log_level_of_var_[PROPENSITIES] = 2;
-        log_level_of_var_[CHOSEN_PROPENSITY] = 1;
-        log_level_of_var_[REACTION_INDEX] = 2;
 
-    }
     void update_logRotation(long long unsigned current_step,
                             const double current_rand_one, double current_rand_two, double current_t_current,
                             double current_t_next, double current_states[], double current_propensities[],
@@ -157,21 +167,6 @@ private:
     std::ofstream  panic_file_stream_;
     std::ofstream  periodic_file_stream_ ;
 
-    /* definition of log levels, lower the value of
-     * logging level means higher level of verbosity.
-     *
-     * INFO - { STATES,PROPENSITIES, REACTION_INDICIES}
-     * DEBUG - {T_CURR ,T_NEXT , CHOOSEN_PROPENSITY }  + INFO
-     * ALL - {RAND_ONE , RAND_TWO } + DEBUG
-     * set the logging level for each variable
-     * For example,for RAND_ONE the level is set to 0
-     * so this variable will be logged when logging flag is
-     * set to ALL. If logging flag will be set to DEBUG or
-     * INFO then this variable will not be logged.
-     * so a variable is logged if its set flag value is higher than
-     * the value of logging_flag.
-     */
-    int log_level_of_var_[ NUM_VARS ];
 
     LOGLEVEL level_;
 
@@ -190,11 +185,32 @@ private:
 
 };
 
+class LoggerFactory
+{
+
+public:
+    LoggerFactory(const ProgramOptions* program_options)
+    {
+        // intantiate and initialize logging parameters
+        //logging_parameters_ = new LoggingParameters;
+        logging_parameters_.panic_file_name_ = std::string(program_options->panic_file_name());
+        logging_parameters_.periodic_file_name_ = std::string(program_options->periodic_file_name());
+        logging_parameters_.num_history_ = program_options->num_history();
+        logging_parameters_.logging_period_ = program_options->period();
+    }
+    Logger* create()
+    {
+        Logger *logger = NULL;
+        logger = new Logger(logging_parameters_);
+        return logger;
+    }
+
+private:
+    LoggingParameters logging_parameters_;
+};
+
 /* some general purpose macros and function declarations */
-mxArray* getFieldPointer(const mxArray *struct_array, int index,
-                         const char* field_name, mxClassID class_id_expected);
 
-
-//#define CHECK_NOTNEG(reaction_id,propensity) if (propensity < 0) { mexPrintf("For reaction : %d the propensity is : %lf\n",reaction_id,propensity);return -1;}
+// TODO:  This macro should be defined in propensity header file
 #define IS_PROPENSITY_NEGATIVE(reaction_id,propensity) if (propensity < 0) { mexPrintf("For reaction : %d the propensity is : %lf\n",reaction_id,propensity); ret_val = -1;}
 #endif

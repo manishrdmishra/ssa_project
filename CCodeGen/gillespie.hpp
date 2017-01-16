@@ -29,8 +29,12 @@ struct SimulationParametersOut
 
 class Gillespie
 {
-public:
 
+public:
+enum TYPE
+    {
+       BASIC = 0
+    };
 
     Gillespie ()
     {
@@ -79,5 +83,30 @@ private:
     Logger* logger_;
 };
 
+class SimulationFactory
+{
+public:
+    SimulationFactory(Logger* logger)
+            :logger_(logger)
+    {
+
+    }
+    Gillespie* create(Gillespie::TYPE type)
+    {
+        switch(type)
+        {
+            case Gillespie::BASIC:
+                return  (new GillespieBasic(logger_));
+            break;
+            default:
+                mexErrMsgIdAndTxt("SSA:InvalidGillespie",
+                                  "This Gillespie simulation is not supported");
+        }
+
+    }
+
+private:
+   Logger* logger_;
+};
 
 #endif //DR_SSASIM_GELLESPIE_H

@@ -116,6 +116,7 @@ copyfile(which('DRTB_simulateSSA.cpp'),'DRTB_simulateSSA_tmp.cpp');
 copyfile(which('logger.hpp'),'logger_tmp.hpp');
 copyfile(which('logger.cpp'),'logger_tmp.cpp');
 copyfile(which('program_option_parser.hpp'),'program_option_parser_tmp.hpp');
+copyfile(which('program_option_parser.cpp'),'program_option_parser_tmp.cpp');
 copyfile(which('gillespie.hpp'),'gillespie_tmp.hpp');
 copyfile(which('gillespie.cpp'),'gillespie_tmp.cpp');
 
@@ -188,6 +189,7 @@ src{end + 1} =  fullfile(pwd,'DRTB_simulateSSA_tmp.cpp');
 src{end + 1} = fullfile(pwd,'DRTB_modeldef_tmp.cpp');
 src{end + 1} = fullfile(pwd,'logger_tmp.cpp');
 src{end + 1} = fullfile(pwd,'gillespie_tmp.cpp');
+src{end + 1} = fullfile(pwd,'program_option_parser_tmp.cpp');
 
 %% concatenate the flags
 flags.mexcc = horzcat(flags.cc, ...

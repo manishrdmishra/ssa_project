@@ -28,15 +28,10 @@ enum PROGRAM_OPTIONS
     NUM_OF_THREAD
 };
 
-/* Pre assign the class of each element present in the structure */
-mxClassID classIDflags[NUM_OF_FIELDS] =
-        {
-                mxCHAR_CLASS,
-                mxCHAR_CLASS,
-                mxUINT64_CLASS,
-                mxUINT64_CLASS,
-                mxUINT64_CLASS
-        };
+/* Pre assign the class of each element present in the structure,
+ * see the source file for definition
+ */
+extern mxClassID classIDflags[NUM_OF_FIELDS];
 
 struct FieldNames
 {
@@ -64,7 +59,7 @@ struct FieldNames
 
 
 /****************************************************************
- * mexFunction receives a structure in prhs[2].
+ * mexFunction receives a structure in prhs[4].
  * This structure provide the options related to debugging.
  *  Currently this structure keep four elements.
  *
@@ -94,145 +89,75 @@ struct FieldNames
  * *****************************************************************/
 
 
-class ProgramOptionsParser
+class ProgramOptions
 {
 public:
-    ProgramOptionsParser(const mxArray* options);
-    void parse();
-    char* periodic_file_name() const;
-    char* panic_file_name() const;
-    long long unsigned num_history()const;
-    long long unsigned period() const;
-    long long unsigned num_threads() const;
-    ~ProgramOptionsParser();
-    mxArray* getFieldPointer(const char* fieldName, mxClassID classIdExpected);
+    ProgramOptions(char* panic_file_name,
+                   char* periodic_file_name,
+                   long long unsigned* num_history,
+                   long long unsigned* period,
+                   long long unsigned* num_of_threads)
+            : panic_file_name_(panic_file_name),
+              periodic_file_name_(periodic_file_name),
+              num_history_(num_history),
+              period_(period),
+              num_of_threads_(num_of_threads)
+    {
+
+    }
+    char* periodic_file_name() const
+    {
+        return periodic_file_name_;
+    }
+    char* panic_file_name() const
+    {
+        return panic_file_name_;
+    }
+    long long unsigned num_history() const
+    {
+        return *num_history_;
+    }
+    long long unsigned period() const
+    {
+        return *period_;
+    }
+    long long unsigned num_threads() const
+    {
+        return *num_of_threads_;
+    }
+    ~ProgramOptions()
+    {
+
+    }
 private:
-    const mxArray* options_;
     char* panic_file_name_;
     char* periodic_file_name_;
     long long unsigned* num_history_;
     long long unsigned* period_;
     long long unsigned* num_of_threads_;
-    long long unsigned* parseLong(const char** field_names, PROGRAM_OPTIONS option);
-    char* parseString(const char** names, PROGRAM_OPTIONS option);
 
 };
 
-ProgramOptionsParser::ProgramOptionsParser(const mxArray *options)
-        :options_(options),
-         panic_file_name_(NULL),
-         periodic_file_name_(NULL),
-         num_history_(NULL),
-         period_(NULL),
-         num_of_threads_(NULL)
+class ProgramOptionsParser
 {
-
-}
-ProgramOptionsParser::~ProgramOptionsParser()
-{
-
-}
-
-
-inline char* ProgramOptionsParser::panic_file_name() const
-{
-    return panic_file_name_;
-}
-inline char* ProgramOptionsParser::periodic_file_name() const
-{
-    return periodic_file_name_;
-}
-inline long long unsigned ProgramOptionsParser::num_history() const
-{
-    return *num_history_;
-}
-inline long long unsigned ProgramOptionsParser::period() const
-{
-    return *period_;
-}
-inline long long unsigned ProgramOptionsParser::num_threads() const
-{
-    return *num_of_threads_;
-}
-void ProgramOptionsParser::parse()
-{
-    /* get number of elements in structure */
-    int num_fields = mxGetNumberOfFields(options_);
-    //mexPrintf("Number of fields provided in structure %d \n", num_fields);
-    if (num_fields != NUM_OF_FIELDS)
-    {
-        mexWarnMsgIdAndTxt("SSA:programOptions:NumOfStructElementMismatch",
-                           "The expected number of elements in structure does not match with the provided\n");
-        //mexPrintf("Expected vs Provided : %d  %d\n", NUM_OF_FIELDS, num_fields);
-    }
-
-    //mexPrintf("Number of elements in structure %d \n", num_of_elements_in_structure);
-    FieldNames field_names(num_fields,options_);
-
-    panic_file_name_ = parseString(field_names.names_,PANIC_FILE);
-    periodic_file_name_ = parseString(field_names.names_,PERIODIC_FILE);
-    num_history_ = parseLong(field_names.names_,NUM_OF_HISTORY);
-    period_ = parseLong(field_names.names_,PERIOD);
-    num_of_threads_ = parseLong(field_names.names_,NUM_OF_THREAD);
-    mexPrintf("parsing done!\n");
-
-// memory allocated in FieldNames will be free here
-}
-long long unsigned* ProgramOptionsParser::parseLong(const char** names, PROGRAM_OPTIONS option_index)
-{
-/* get the filed pointer*/
-    mxArray *field_pointer= getFieldPointer(names[option_index], classIDflags[option_index]);
-    if (field_pointer != NULL)
+public:
+    ProgramOptionsParser(const mxArray* options)
+    :options_(options)
     {
 
-       return (long long unsigned*) mxGetData(field_pointer);
     }
-}
-char* ProgramOptionsParser::parseString(const char** names, PROGRAM_OPTIONS option_index)
-{
-    /* get the filed pointer*/
-    mxArray *string_field_pointer = getFieldPointer(names[option_index], classIDflags[option_index]);
-    char* string_field = NULL;
-    if (string_field_pointer != NULL)
+    const ProgramOptions* parse();
+    ~ProgramOptionsParser()
     {
 
-        string_field = mxArrayToString(string_field_pointer);
-        mexPrintf("string field : %s \n", string_field);
     }
-    return string_field;
-}
-/**************************************************************************
- * input : struct_arrary ( a  pointer to Matlab structure )
- * input : index ( index of an element in structure )
- * input : fieldName ( name of the element )
- * input : classIdExpected ( expected class id of the element)
- * output : pointer to the corresponding structure element
- *
- * This function takes the above input arguments checks the validity of
- * the structure element and if everything is fine then returns a pointer.
- **************************************************************************/
-mxArray* ProgramOptionsParser::getFieldPointer(const char* field_name, mxClassID class_id_expected)
-{
-    mxArray *field_pointer = NULL;
-    //mexPrintf("executing getFieldPointer..");
-    field_pointer = mxGetField(options_, 0 , field_name);
-    if (field_pointer == NULL || mxIsEmpty(field_pointer)) {
-        //mexPrintf("Field %s is empty \n", fieldName);
-        mexWarnMsgIdAndTxt("SSA:programOptions:StructElementEmpty",
-                           "The element in the structure is empty,default value will be assigned \n");
+    mxArray* getFieldPointer(const char* fieldName, mxClassID classIdExpected);
+private:
+    const mxArray* options_;
+    long long unsigned* parseLong(const char** field_names, PROGRAM_OPTIONS option);
+    char* parseString(const char** names, PROGRAM_OPTIONS option);
 
-        return NULL;
-    }
-//	mexPrintf("The class of field :   %s is : %d\n", fieldName,
-//			mxGetClassID(field_pointer));
-    if (mxGetClassID(field_pointer) != class_id_expected) {
 
-        mexErrMsgIdAndTxt("SSA:programOptions:inputNotStruct",
-                          "Given class Id does not match with the expected class id");
-//        mexPrintf("The expected class of field :   %s is : %d\n", fieldName,
-//			classIdExpected);
-    }
-    return field_pointer;
-}
+};
 
 #endif //DR_SSASIM_PROGRAM_OPTION_PARSER_HPP
