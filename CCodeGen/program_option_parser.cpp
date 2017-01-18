@@ -46,7 +46,7 @@ const ProgramOptions* ProgramOptionsParser::parse()
                                                          num_history,
                                                          period,
                                                          num_of_threads);
-    mexPrintf("parsing done!\n");
+    //mexPrintf("parsing done!\n");
     return program_options;
 
 // memory allocated in FieldNames will be free here
@@ -70,7 +70,7 @@ char* ProgramOptionsParser::parseString(const char** names, PROGRAM_OPTIONS opti
     {
 
         string_field = mxArrayToString(string_field_pointer);
-        mexPrintf("string field : %s \n", string_field);
+        //mexPrintf("string field : %s \n", string_field);
     }
     return string_field;
 }

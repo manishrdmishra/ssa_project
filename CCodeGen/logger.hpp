@@ -52,13 +52,17 @@ enum VAR
 /*defines the different output destinations */
 enum OUTPUT
 {
-    STD_OUTPUT = 0, FILE_OUTPUT
+    STD_OUTPUT = 0,
+    FILE_OUTPUT
 };
 
 /* Defines the log level */
 enum LOGLEVEL
 {
-    ALL = 0, DEBUG, INFO, OFF
+    ALL = 0,
+    DEBUG,
+    INFO,
+    OFF
 };
 
 /* definition of log levels, lower the value of
@@ -85,12 +89,14 @@ struct LoggingParameters
 
 };
 
+
 class Logger
 {
 
 public:
-    Logger(LoggingParameters& logging_parameters)
-            :logging_parameters_(logging_parameters)
+    Logger(const LoggingParameters& logging_parameters,LOGLEVEL level)
+            :logging_parameters_(logging_parameters),
+             level_(level)
 
 
     {
@@ -105,9 +111,6 @@ public:
     {
         level_ = log_level;
     }
-    bool shouldBeLogged(VAR var);
-
-    void initializeLoggingFlags();
 
     void update_logRotation(long long unsigned current_step,
                             const double current_rand_one, double current_rand_two, double current_t_current,
@@ -118,7 +121,7 @@ public:
                       long long unsigned current_step,double log_rand_one, double log_rand_two,
                       double log_t_curr, double log_t_next, double log_states[],
                       double log_propensities[], double log_chosen_propensities,
-                      double log_reaction_indices);
+                      double log_current_reaction_index);
 
     void writeLastNSteps(OUTPUT destination, std::ofstream &fstream,
                          long long unsigned current_step );
@@ -159,21 +162,73 @@ public:
         return periodic_file_stream_;
     }
 
-private:
-    void openFileStream(std::string file_name, std::ofstream& file_stream);
-    void closeFileStream(std::ofstream& file_stream);
-    const LoggingParameters& logging_parameters_;
+protected:
+    void openFileStream(std::string file_name, std::ofstream& file_stream)
+    {
+        if (file_stream.is_open() == false)
+        {
+            file_stream.open(file_name.c_str(),
+                         std::ios_base::app | std::ios_base::ate |
+                         std::ios_base::out | std::ios_base::binary);
+        }
+    }
+    void closeFileStream(std::ofstream& file_stream)
+    {
+        if (file_stream.is_open() == false)
+        {
+            file_stream.close();
+        }
+    }
+    void updateForLevelInfo(long long unsigned current_step,
+                            double curr_states[],
+                            double curr_propensities[],
+                            double curr_reaction_index);
 
+    void updateForLevelDebug(long long unsigned current_step,
+                             double curr_t_curr,
+                             double curr_t_next,
+                             double curr_states[],
+                             double curr_propensities[],
+                             double curr_chosen_propensity,
+                             double curr_reaction_index);
+    void updateForLevelAll(long long unsigned current_step,
+                           double curr_rand_one,
+                           double curr_rand_two,
+                           double curr_t_curr,
+                           double curr_t_next,
+                           double curr_states[],
+                           double curr_propensities[],
+                           double curr_choosen_propensity,
+                           double curr_reaction_index);
+    void writeOneStepForLevelInfo(std::stringstream& stream,
+                                  double log_states[],
+                                  double log_propensities[],
+                                  double log_reaction_index);
+    void writeOneStepForLevelDebug(std::stringstream& stream,
+                                   double log_t_curr,
+                                   double log_t_next,
+                                   double log_states[],
+                                   double log_propensities[],
+                                   double log_chosen_propensities,
+                                   double log_current_reaction_index);
+    void writeOneStepForLevelALL(std::stringstream& stream,
+                                 double log_rand_one,
+                                 double log_rand_two,
+                                 double log_t_curr,
+                                 double log_t_next,
+                                 double log_states[],
+                                 double log_propensities[],
+                                 double log_chosen_propensities,
+                                 double log_current_reaction_index);
+
+
+private:
+    LOGLEVEL level_;
+    const LoggingParameters& logging_parameters_;
     std::ofstream  panic_file_stream_;
     std::ofstream  periodic_file_stream_ ;
 
-
-    LOGLEVEL level_;
-
-    /* initialize the logging flag for variables */
-    bool logging_flag_of_var_[NUM_VARS];
-
-    /* definition of variables to store the states */
+    // definition of variables to store the states
     double log_rand_one_[MAX_HISTORY];
     double log_rand_two_[MAX_HISTORY];
     double log_time_curr_[MAX_HISTORY];
@@ -185,31 +240,7 @@ private:
 
 };
 
-class LoggerFactory
-{
-
-public:
-    LoggerFactory(const ProgramOptions* program_options)
-    {
-        // intantiate and initialize logging parameters
-        //logging_parameters_ = new LoggingParameters;
-        logging_parameters_.panic_file_name_ = std::string(program_options->panic_file_name());
-        logging_parameters_.periodic_file_name_ = std::string(program_options->periodic_file_name());
-        logging_parameters_.num_history_ = program_options->num_history();
-        logging_parameters_.logging_period_ = program_options->period();
-    }
-    Logger* create()
-    {
-        Logger *logger = NULL;
-        logger = new Logger(logging_parameters_);
-        return logger;
-    }
-
-private:
-    LoggingParameters logging_parameters_;
-};
-
-/* some general purpose macros and function declarations */
+// some general purpose macros and function declarations
 
 // TODO:  This macro should be defined in propensity header file
 #define IS_PROPENSITY_NEGATIVE(reaction_id,propensity) if (propensity < 0) { mexPrintf("For reaction : %d the propensity is : %lf\n",reaction_id,propensity); ret_val = -1;}

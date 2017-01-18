@@ -41,16 +41,6 @@ void Gillespie::writeStatesToOutputOnTimeOut(SimulationParametersIn& simulation_
     }
 }
 
-GillespieBasic::GillespieBasic(Logger* logger)
-        :logger_(logger)
-{
-
-}
-GillespieBasic::~GillespieBasic()
-{
-    //free the memory and close the open streams
-}
-
 void GillespieBasic::runSimulation(SimulationParametersIn& simulation_parameters_in, SimulationParametersOut& simulation_parameters_out)
 {
 
@@ -74,7 +64,7 @@ void GillespieBasic::runSimulation(SimulationParametersIn& simulation_parameters
         rand_two = generateRandomNumber();
 
         // calculate cumulative propensity
-       // std::cout<<"calculating the propensity\n";
+        // std::cout<<"calculating the propensity\n";
         return_val = calculateCumulativePropensity(cumulative_propensity_,simulation_parameters_in.states_ ,simulation_parameters_in.parameters_);
         if (return_val == -1 )
         {

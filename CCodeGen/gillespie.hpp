@@ -27,6 +27,7 @@ struct SimulationParametersOut
     double* timecourse_ ;
 };
 
+
 class Gillespie
 {
 
@@ -51,7 +52,7 @@ enum TYPE
 
 protected:
 
-    void initializeSimulation(SimulationParametersIn& simulation_parameters_in, SimulationParametersOut& simulation_parameters_out);
+   void initializeSimulation(SimulationParametersIn& simulation_parameters_in, SimulationParametersOut& simulation_parameters_out);
     inline double generateRandomNumber ()
     {
         return ( std::max(1.0, ( double ) rand()) / (double) RAND_MAX );
@@ -76,27 +77,31 @@ class GillespieBasic : public Gillespie
 {
 public:
 
-    GillespieBasic(Logger* logger);
-    ~GillespieBasic();
+    GillespieBasic(Logger* logger)
+    :logger_(logger)
+    {
+
+    }
+    ~GillespieBasic()
+    {
+
+    }
     void runSimulation(SimulationParametersIn& simulation_parameters_in, SimulationParametersOut& simulation_parameters_out);
 private:
     Logger* logger_;
 };
 
+
 class SimulationFactory
 {
 public:
-    SimulationFactory(Logger* logger)
-            :logger_(logger)
-    {
 
-    }
-    Gillespie* create(Gillespie::TYPE type)
+    static Gillespie* create(Gillespie::TYPE type,Logger* logger)
     {
         switch(type)
         {
             case Gillespie::BASIC:
-                return  (new GillespieBasic(logger_));
+                return  (new GillespieBasic(logger));
             break;
             default:
                 mexErrMsgIdAndTxt("SSA:InvalidGillespie",
@@ -105,8 +110,8 @@ public:
 
     }
 
-private:
-   Logger* logger_;
 };
+
+
 
 #endif //DR_SSASIM_GELLESPIE_H
