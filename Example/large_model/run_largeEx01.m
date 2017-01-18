@@ -34,9 +34,9 @@
     Nssa = 1;
     options.scale = 'absolute';
 
-% Time vector
-% Timescale of model is days/timeScale; e.g. for timeScale=1, 
-%    t = linspace(0,50*timeScale,1000); % full 50 day simulation
+    % Time vector
+    % Timescale of model is days/timeScale; e.g. for timeScale=1,
+    %    t = linspace(0,50*timeScale,1000); % full 50 day simulation
     t = linspace(0,2*timeScale,1000); % short 1 day test simulation
     
     %% Finish system (cerena toolbox)
@@ -45,16 +45,20 @@
     
     %% Compile executable
     
-     num_of_threads = 2;
+    num_of_threads = 1;
     %% specify the compiler options
+    cleanup = 0;
+    optimization = 1;
+    logging = 1;
+    logging_level = 2;
+    
     % To get details about these flags, please look at dr_compileModel.m file
     
-   
-    compiler_options.cleanup = 0;
-    compiler_options.optimization = 1;
-    compiler_options.logging = 0;
-    compiler_options.logging_level = 2;
-    compiler_options.num_of_threads = num_of_threads;
+    compiler_options.cleanup = cast(cleanup,'uint8');
+    compiler_options.optimization = cast(optimization,'uint8');
+    compiler_options.logging = cast(logging,'uint8');
+    compiler_options.logging_level = cast(logging_level,'uint8');
+    compiler_options.num_of_threads = cast(num_of_threads,'uint8');
     execName = 'largeExample01_basic';
     dr_compileModel(System, execName, compiler_options);
     %   copyfile(which(execName),[fileparts(which('run_largeEx01')) filesep 'bin' filesep]);

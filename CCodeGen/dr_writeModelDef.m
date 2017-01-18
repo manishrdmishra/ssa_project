@@ -65,50 +65,12 @@ fprintf(fid,'int calculateCumProps(double* DRTB_CumProp, double* DRTB_State, dou
 fprintf(fid,'{\n');
 
 fprintf(fid,'\t int ret_val = 0;\n');
-% start the parallel sections
-fprintf(fid,'\t #pragma omp parallel sections\n');
-fprintf(fid,'\t{\n');
 
-% start the first parallel section
-fprintf(fid,'\t\t#pragma omp section\n');
-fprintf(fid,'\t\t{\n');
-
-
-numberOfParallelSections = floor( numel(ModelCumPropStrings) / num_of_threads );
-currentParallelSection = 0;
-
-% This loop writes propensity expressions corresponding to each
-% reaction. It also group them in parallel sections. if there are
-% num_reactions reactions and num_processors processors then number
-% of parallel sections would be num_parallel_sections ( num_reactions / num_processors ) .
-% First ( num_parallel_sections - 1 ) sections would contain
-% num_parallel_sections many reactions and last one would contain
-% num_parallel_sections + (  num_reactions % num_processors ) .
-% For example If there are 2  processors and 5 reactions then
-% number of parallel section would be 2 ( 5/2 ). So reactions R1
-% and R2 are placed in first parallel section and R3, R4 , R5 would
-% be placed in second parallel section.
-
-for i = 1:numel(ModelCumPropStrings)
-    
-    if  (canBeWrittenToCurrentParallelSection(currentParallelSection,i,numberOfParallelSections) == 1)
-        writePropensityString(fid,ModelCumPropStrings,i);
-    elseif (createNewParralelSection(currentParallelSection,numel(ModelCumPropStrings),numberOfParallelSections) == 1)
-        currentParallelSection = currentParallelSection + 1;
-        fprintf(fid,'\t\t}\n');
-        fprintf(fid,'\t\t#pragma omp section\n');
-        fprintf(fid,'\t\t{\n');
-    else
-        writePropensityString(fid,ModelCumPropStrings,i);
-    end
-    
+if(num_of_threads == 1)
+    writePropensityWithoutThreadSupport(fid,ModelCumPropStrings);
+else
+    writePropensityWithThreadSupport(fid,ModelCumPropStrings,num_of_threads);
 end
-
-
-% close the last parallel section
-fprintf(fid, '\t\t}\n');
-% close the parallel sections
-fprintf(fid,'\t}\n');
 
 fprintf(fid,'\treturn ret_val;\n');
 fprintf(fid,'}\n\n');
@@ -136,6 +98,59 @@ end
 
 
 % Helper functions 
+function[] = writePropensityWithoutThreadSupport(fid,ModelCumPropStrings)
+for i = 1:numel(ModelCumPropStrings)
+    
+    writePropensityString(fid,ModelCumPropStrings,i);
+    
+end
+end
+
+function[] = writePropensityWithThreadSupport(fid,ModelCumPropStrings,num_of_threads )
+
+numberOfParallelSections = floor( numel(ModelCumPropStrings) / num_of_threads );
+currentParallelSection = 0;
+% start the parallel sections
+fprintf(fid,'\t #pragma omp parallel sections\n');
+fprintf(fid,'\t{\n');
+
+% start the first parallel section
+fprintf(fid,'\t\t#pragma omp section\n');
+fprintf(fid,'\t\t{\n');
+
+% This loop writes propensity expressions corresponding to each
+% reaction. It also group them in parallel sections. if there are
+% num_reactions reactions and num_processors processors then number
+% of parallel sections would be num_parallel_sections ( num_reactions / num_processors ) .
+% First ( num_parallel_sections - 1 ) sections would contain
+% num_parallel_sections many reactions and last one would contain
+% num_parallel_sections + (  num_reactions % num_processors ) .
+% For example If there are 2  processors and 5 reactions then
+% number of parallel section would be 2 ( 5/2 ). So reactions R1
+% and R2 are placed in first parallel section and R3, R4 , R5 would
+% be placed in second parallel section.
+
+for i = 1:numel(ModelCumPropStrings)
+    
+    if  (canBeWrittenToCurrentParallelSection(currentParallelSection,i,numberOfParallelSections) == 1)
+        writePropensityString(fid,ModelCumPropStrings,i);
+    elseif (createNewParralelSection(currentParallelSection,numel(ModelCumPropStrings),numberOfParallelSections) == 1)
+        currentParallelSection = currentParallelSection + 1;
+        fprintf(fid,'\t\t}\n');
+        fprintf(fid,'\t\t#pragma omp section\n');
+        fprintf(fid,'\t\t{\n');
+    else
+        writePropensityString(fid,ModelCumPropStrings,i);
+    end
+    
+end
+% close the last parallel section
+fprintf(fid, '\t\t}\n');
+% close the parallel sections
+fprintf(fid,'\t}\n');
+end
+
+
 function[] =  writePropensityString(fid,modelCumPropStrings,index)
 fprintf(fid,['\t\t\t' modelCumPropStrings{index} '\n']);
 fprintf(fid,'\t\t\tIS_PROPENSITY_NEGATIVE(%d, DRTB_CumProp[%d]);\n',index-1, index-1);

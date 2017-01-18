@@ -64,11 +64,12 @@ end
 % Compile model, execute simulation, burn carthago
 %% specify the compiler options
 % To get details about these flags, please look at dr_compileModel.m file
+% default compiler options provided to user
 
-compiler_options.cleanup = 1;
-compiler_options.optimization = 1;
-compiler_options.logging = 0;
-compiler_options.logging_level = 0;
+compiler_options.cleanup        =      cast(1,'unit8');
+compiler_options.optimization   =      cast(0,'unit8');
+compiler_options.logging        =      cast(0,'unit8');
+compiler_options.logging_level  =      cast(4,'unit8');
 
 dr_compileModel(System, ExecID, compiler_options);
 Timecourse = dr_runSSAWithModel(timepoints, x0, parameters,program_options, ExecID,numruns); %#ok<*INUSL>

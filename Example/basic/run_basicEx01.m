@@ -141,16 +141,22 @@ Nssa = 1;
 %% Optimized SSA simulation
 tic,
 
- num_of_threads = 2;
+ num_of_threads = 3;
 
 %% specify the compiler options
+
+cleanup = 0;
+optimization = 1;
+logging = 1;
+logging_level = 2;
+
 % To get details about these flags, please look at dr_compileModel.m file
 
-compiler_options.cleanup = 0;
-compiler_options.optimization = 1;
-compiler_options.logging = 0;
-compiler_options.logging_level = 0;
-compiler_options.num_of_threads = num_of_threads;
+compiler_options.cleanup = cast(cleanup,'uint8');
+compiler_options.optimization = cast(optimization,'uint8');
+compiler_options.logging = cast(logging,'uint8');
+compiler_options.logging_level = cast(logging_level,'uint8');
+compiler_options.num_of_threads = cast(num_of_threads,'uint8');
 
 dr_compileModel(system,'testAtefeh',compiler_options);
 
