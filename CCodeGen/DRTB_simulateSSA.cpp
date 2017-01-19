@@ -86,12 +86,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 #undef LOGGING
 #endif
 #endif
-	std::cout<<"Logging level : "<<level<<std::endl;
+	//std::cout<<"Logging level : "<<level<<std::endl;
 	// instantiate and initialize logging parameters
 	Logger* logger = NULL;
 	if( level != OFF)
 	{
-		std::cout<<"Logging level is not OFF"<<std::endl;
+		//std::cout<<"Logging level is not OFF"<<std::endl;
 		LoggingParameters logging_parameters;
 		logging_parameters.panic_file_name_ = std::string(program_options->panic_file_name());
 		logging_parameters.periodic_file_name_ = std::string(program_options->periodic_file_name());

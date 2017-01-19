@@ -27,6 +27,24 @@ struct SimulationParametersOut
     double* timecourse_ ;
 };
 
+// A custom greater functor
+class custom_greater
+{
+public:
+    custom_greater(double chosen_propensity)
+            :chosen_propensity_(chosen_propensity)
+    {
+
+    }
+
+    bool operator()(double propensity)
+    {
+        return propensity > chosen_propensity_;
+    }
+
+private:
+    double chosen_propensity_;
+};
 
 class Gillespie
 {
@@ -45,14 +63,16 @@ enum TYPE
     {
 
     };
-    virtual void runSimulation(SimulationParametersIn& simulation_parameters_in, SimulationParametersOut& simulation_parameters_out)
+    virtual void runSimulation(SimulationParametersIn& simulation_parameters_in,
+                               SimulationParametersOut& simulation_parameters_out)
     {
 
     }
 
 protected:
 
-   void initializeSimulation(SimulationParametersIn& simulation_parameters_in, SimulationParametersOut& simulation_parameters_out);
+   void initializeSimulation(SimulationParametersIn& simulation_parameters_in,
+                             SimulationParametersOut& simulation_parameters_out);
     inline double generateRandomNumber ()
     {
         return ( std::max(1.0, ( double ) rand()) / (double) RAND_MAX );
@@ -65,7 +85,8 @@ protected:
     {
         updateState( states, reaction_index);
     }
-    void writeStatesToOutputOnTimeOut(SimulationParametersIn& simulation_parameters_in, SimulationParametersOut& simulation_parameters_out);
+    void copyStateVectorTillTimeOut(SimulationParametersIn& simulation_parameters_in,
+                                      SimulationParametersOut& simulation_parameters_out);
     double cumulative_propensity_[SSA_NumReactions];
     int reaction_index_;
     int itime_;
@@ -86,7 +107,17 @@ public:
     {
 
     }
-    void runSimulation(SimulationParametersIn& simulation_parameters_in, SimulationParametersOut& simulation_parameters_out);
+    void runSimulation(SimulationParametersIn& simulation_parameters_in,
+                       SimulationParametersOut& simulation_parameters_out);
+    int findNextReactionIndex(double chosen_propensity);
+    double calculateExponentialRandomValue(double rand_one)
+    {
+        return ((1 / cumulative_propensity_[SSA_NumReactions - 1]) * log ( 1 / rand_one));
+    }
+    double chooseRandomPropensity(double rand_two)
+    {
+        return (rand_two * cumulative_propensity_[SSA_NumReactions - 1 ]);
+    }
 private:
     Logger* logger_;
 };

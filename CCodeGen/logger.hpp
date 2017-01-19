@@ -78,6 +78,7 @@ enum LOGLEVEL
  * so a variable is logged if its set flag value is higher than
  * the value of logging_flag.
  */
+//Todo : change NUM_VARS to a better name
 const int log_level_of_var_[ NUM_VARS ] = { 0, 0, 1, 1, 2, 2, 1, 2 };
 
 struct LoggingParameters

@@ -2,7 +2,7 @@
 //#include "logger.hpp"
 
 /* assigns name to variables which will be used during logging */
-
+// Todo: change this name
 char NAME_OF_VAR[][MAX_VAR_LEN] =
 		{ "rand_one", "rand_two", "t_curr", "t_next", "state vector",
 		  "propensity vector", "chosen propensity", "chosen reaction index" };
