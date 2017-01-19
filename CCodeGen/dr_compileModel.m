@@ -30,7 +30,7 @@ options = parse_compiler_input(compiler_options);
 % Create temporary working directory
 curDir = pwd;
 if ~exist([pwd() filesep() ExecID '_tmp'],'dir')
-mkdir([ExecID '_tmp']);
+    mkdir([ExecID '_tmp']);
 end
 cd([ExecID '_tmp']);
 
@@ -80,34 +80,35 @@ flags.ldflags{end + 1} = '-Wl,--no-undefined';
 %flags.ldflags{end + 1 } = '-pg';
 flags.ldflags{end + 1 } = '-fopenmp';
 
-
-% set the debug level flags specified by user
-if(options.logging_level == 0)
-flags.cxxflags{end + 1} = '-DLEVEL_ALL';
-elseif(options.logging_level == 1)
-flags.cxxflags{end + 1} = '-DLEVEL_DEBUG';
-elseif(options.logging_level == 2)
-flags.cxxflags{end + 1} = '-DLEVEL_INFO';
-
-end
-
 % set the flag to enable the logging
-if(options.logging == 1)
-flags.cxxflags{end + 1} = '-DLOGGING';
+if options.logging == 1
+    disp('logging flag is set');
+    flags.cxxflags{end + 1} = '-DLOGGING';
+    % set the debug level flags specified by user
+    if options.logging_level == 3
+        disp('logging level is set to ALL');
+        flags.cxxflags{end + 1} = '-DLEVEL_ALL';
+    elseif options.logging_level == 2
+        disp('logging level is set to DEBUG');
+        flags.cxxflags{end + 1} = '-DLEVEL_DEBUG';
+    elseif options.logging_level == 1
+        disp('logging level is set to INFO');
+        flags.cxxflags{end + 1} = '-DLEVEL_INFO';
+    end
+    
 end
 
 % set the optimization flags
-if(options.optimization == 1)
-disp('optimization flag is set');
-flags.cxxoptim{end + 1} = '-O3';
-flags.cxxoptim{end + 1} = '-ffast-math';
+if options.optimization == 1
+    disp('optimization flag is set');
+    flags.cxxoptim{end + 1} = '-O3';
+    flags.cxxoptim{end + 1} = '-ffast-math';
 else
-disp('optimization flag is not set');
-flags.cxxoptim{end + 1} = '-O0';
-flags.cxxoptim{end + 1} = '-funroll-all-loops';
+    disp('optimization flag is not set');
+    flags.cxxoptim{end + 1} = '-O0';
+    flags.cxxoptim{end + 1} = '-funroll-all-loops';
 end
 flags.cxxoptim{end + 1}  = '-fopenmp';
-
 
 flags.ldoptim{end + 1} = '-fopenmp';
 
@@ -121,11 +122,11 @@ src{end + 1} = fullfile(pwd,'program_option_parser_tmp.cpp');
 
 %% concatenate the flags
 flags.mexcc = horzcat(flags.cc, ...
-{['CXXOPTIMFLAGS=' strjoin(flags.cxxoptim)]},...
-{['CXX=' strjoin(flags.cxx)]},...
-{['CXXFLAGS=' strjoin(flags.cxxflags)]}, ...
-{['LDOPTIMFLAGS=' strjoin(flags.ldoptim)]},...
-{['LDFLAGS=' strjoin(flags.ldflags)]});
+    {['CXXOPTIMFLAGS=' strjoin(flags.cxxoptim)]},...
+    {['CXX=' strjoin(flags.cxx)]},...
+    {['CXXFLAGS=' strjoin(flags.cxxflags)]}, ...
+    {['LDOPTIMFLAGS=' strjoin(flags.ldoptim)]},...
+    {['LDFLAGS=' strjoin(flags.ldflags)]});
 
 
 mopts ={flags.mexcc{:},src{:}};

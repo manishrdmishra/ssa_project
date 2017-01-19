@@ -59,15 +59,15 @@ enum OUTPUT
 /* Defines the log level */
 enum LOGLEVEL
 {
-    ALL = 0,
-    DEBUG,
+    OFF = 0,
     INFO,
-    OFF
+    DEBUG,
+    ALL,
 };
 
 /* definition of log levels, lower the value of
  * logging level means higher level of verbosity.
- * INFO - { STATES,PROPENSITIES, REACTION_INDICIES}
+ * INFO - { STATES,PROPENSITIES, REACTION_INDEX}
  * DEBUG - {T_CURR ,T_NEXT , CHOSEN_PROPENSITY }  + INFO
  * ALL - {RAND_ONE , RAND_TWO } + DEBUG
  * set the logging level for each variable

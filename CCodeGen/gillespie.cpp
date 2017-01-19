@@ -15,11 +15,10 @@ void Gillespie::initializeSimulation(SimulationParametersIn& simulation_paramete
         simulation_parameters_out.timecourse_[itime_ * SSA_NumStates + i] = simulation_parameters_in.states_[i];
     }
 
-    itime_++;
-    time_next_ = simulation_parameters_in.time_points_[itime_];
 
     /* start iteration of simulation */
     time_curr_ = simulation_parameters_in.time_points_[0];
+    itime_++;
     time_next_ = simulation_parameters_in.time_points_[itime_];
 
 }
@@ -80,12 +79,12 @@ void GillespieBasic::runSimulation(SimulationParametersIn& simulation_parameters
         }
         // draw exponential random variable with parameter a0 = cumulative_propensity_[SSA_NumReactions - 1]
 
-        temp = 1 / cumulative_propensity_[SSA_NumReactions - 1] * log ( 1 / rand_one) ;
+        //temp = 1 / cumulative_propensity_[SSA_NumReactions - 1] * log ( 1 / rand_one) ;
         // check if temp is not infinity
         // if temp is inifinity then stop the simulation
         // and log the last n  steps of the simulation, if logging is enabled
 
-        time_curr_ = time_curr_ + temp ;
+        time_curr_ = time_curr_ + 1 / cumulative_propensity_[SSA_NumReactions - 1] * log ( 1 / rand_one) ;
         // if time has been out then write the states to output
         writeStatesToOutputOnTimeOut(simulation_parameters_in, simulation_parameters_out);
 

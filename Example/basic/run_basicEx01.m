@@ -141,7 +141,7 @@ Nssa = 1;
 %% Optimized SSA simulation
 tic,
 
- num_of_threads = 3;
+ num_of_threads = 1;
 
 %% specify the compiler options
 

@@ -69,10 +69,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	// for parallelism
 	omp_set_num_threads(program_options->num_threads());
 
- LOGLEVEL level;
+	LOGLEVEL level;
 // set logging level
 #ifdef LOGGING
-	std::cout<<"logging flag is enabled..\n"<<std::endl;
+	//std::cout<<"logging flag is enabled..\n"<<std::endl;
 #ifdef LEVEL_ALL
 	level = ALL;
 #elif LEVEL_DEBUG
@@ -80,20 +80,25 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 #elif LEVEL_INFO
 	level = INFO;
 #else
-	level = INFO;
+	level = OFF;
 	/* As level is off, disable the logging flag */
 	std::cout<<"disabling logging as logging flag is set to OFF\n"<<std::endl;
 #undef LOGGING
 #endif
 #endif
-
-	// intantiate and initialize logging parameters
-	LoggingParameters logging_parameters;
-	logging_parameters.panic_file_name_ = std::string(program_options->panic_file_name());
-	logging_parameters.periodic_file_name_ = std::string(program_options->periodic_file_name());
-	logging_parameters.num_history_ = program_options->num_history();
-	logging_parameters.logging_period_ = program_options->period();
-	Logger* logger = new Logger(logging_parameters,level);
+	std::cout<<"Logging level : "<<level<<std::endl;
+	// instantiate and initialize logging parameters
+	Logger* logger = NULL;
+	if( level != OFF)
+	{
+		std::cout<<"Logging level is not OFF"<<std::endl;
+		LoggingParameters logging_parameters;
+		logging_parameters.panic_file_name_ = std::string(program_options->panic_file_name());
+		logging_parameters.periodic_file_name_ = std::string(program_options->periodic_file_name());
+		logging_parameters.num_history_ = program_options->num_history();
+		logging_parameters.logging_period_ = program_options->period();
+		logger = new Logger(logging_parameters,level);
+	}
 
 	Gillespie* gillespie = SimulationFactory::create(Gillespie::BASIC,logger);
 
