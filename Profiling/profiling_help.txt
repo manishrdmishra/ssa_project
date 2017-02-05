@@ -7,9 +7,30 @@ Run the profile_ex.m file to save the input of mexFunction to .mat file .
 1) keep the mex executable in the prifiling root directory
 2) from matlab command prompt execute
 mex -client engine ProfilingWrapper.cpp -ldl
+or 
+To compile in debug mode 
+mex -g -client engine ProfilingWrapper.cpp  -ldl -lut -lmx -leng -lmex -lmat
 this will generate the profiler executable 
-3 ) to dump the profiling information execute below command from Profiling root 
+3) to dump the profiling information execute below command from Profiling root 
 PATH=$PATH:/usr/local/MATLAB/R2016a/bin  LD_LIBRARY_PATH=/usr/local/MATLAB/R2016a/bin/glnxa64/:/usr/local/MATLAB/R2016a/sys/os/glnxa64/ valgrind --tool=callgrind --dump-instr=yes --simulate-cache=yes --collect-jumps=yes  ./ProfilingWrapper ./testAtefeh.mexa64 
 This will generate callgrind.out file.
 4) Now we can open this callgrind.out file in KCacheGrind tool to analyse the profiling information.
+
+
+Debug mex file 
+
+Since we are passing structure and complex object we need this wrapper
+Wrapper provide us an easy interface to play with mex files 
+This wrapper separates matlab and C code 
+Matlab is responsible for generating data and providing expression to calculate propensity and update reactions 
+
+
+1 - first do the above steps to creat ProfilingWrapper 
+2 - LD_LIBRARY_PATH=/usr/local/MATLAB/R2016a/bin/glnxa64/:/usr/local/MATLAB/R2016a/sys/os/glnxa64/
+3 - export LD_LIBRARY_PATH
+4 - gdb ProfilingWrapper 
+5 - gdb) b main < set break points > 
+6 - gdb) b mexFuntion < set break points > 
+7 - gdb) r ./testAtefeh.mexa64 < run the program with mex executable as command line input > 
+
 
