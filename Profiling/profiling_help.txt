@@ -26,11 +26,11 @@ Matlab is responsible for generating data and providing expression to calculate 
 
 
 1 - first do the above steps to creat ProfilingWrapper 
-2 - LD_LIBRARY_PATH=/usr/local/MATLAB/R2016a/bin/glnxa64/:/usr/local/MATLAB/R2016a/sys/os/glnxa64/
-3 - export LD_LIBRARY_PATH
-4 - gdb ProfilingWrapper 
-5 - gdb) b main < set break points > 
-6 - gdb) b mexFuntion < set break points > 
-7 - gdb) r ./testAtefeh.mexa64 < run the program with mex executable as command line input > 
+2 - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/MATLAB/R2016a/bin/glnxa64/:/usr/local/MATLAB/R2016a/sys/os/glnxa64/
+3 - gdb ProfilingWrapper 
+4 - gdb) b main < set break points > 
+5 - gdb) b mexFuntion < set break points > 
+6 - gdb) r ./testAtefeh.mexa64 < run the program with mex executable as command line input > 
+
 
 
